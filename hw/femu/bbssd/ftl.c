@@ -24,6 +24,8 @@ static inline bool should_gc_high(struct ssd *ssd)
 
 static inline bool should_map_gc(struct ssd *ssd)
 {
+	fprintf(fp, "should_map_gc	free_trnsl_line_cnt %d, trnsl_gc_thres_lines %d -> %d\n", ssd->lm.free_trnsl_line_cnt, ssd->sp.trnsl_gc_thres_lines, ssd->lm.free_trnsl_line_cnt<=ssd->sp.trnsl_gc_thres_lines);
+	fprintf(fp, "				vpc %d, ipc %d\n", ssd->wp_t.curline->vpc, ssd->wp_t.curline->ipc);
 	return ssd->lm.free_trnsl_line_cnt <= ssd->sp.trnsl_gc_thres_lines;
 }
 
@@ -1117,11 +1119,11 @@ static int do_map_gc(struct ssd *ssd, bool force)
 
     victim_line = select_trnsl_victim_line(ssd, force);
     if (!victim_line) {
-        fprintf(fp, "victim trnsl_line fail..");
+        fprintf(fp, "victim trnsl_line fail..\nend do_map_gc...\n");
 		return -1;
     }
 	
-
+	fprintf(fp, "victim trnsl_line success\n");
     ppa.g.blk = victim_line->id;
     ftl_debug("GC-ing line:%d,ipc=%d,victim=%d,full=%d,free=%d\n", ppa.g.blk,
               victim_line->ipc, ssd->lm.victim_line_cnt, ssd->lm.full_line_cnt,
@@ -1289,7 +1291,9 @@ uint64_t trnsl_page_write(struct ssd *ssd, uint64_t mvpn)	//update translation p
 	set_rmap_ent(ssd, mvpn, &mppn);
 
 	//4. nand write
+	fprintf(fp, "____before mark_page_valid	ipc %d, vpc %d\n", ssd->wp_t.curline->ipc, ssd->wp_t.curline->vpc);
 	mark_page_valid(ssd, &mppn);
+	fprintf(fp, "____after  mark_page_valid	ipc %d, vpc %d\n", ssd->wp_t.curline->ipc, ssd->wp_t.curline->vpc);
 	ssd->ByteWrittenMap += ssd->sp.secs_per_pg * ssd->sp.secsz;
 
 	ssd_advance_trnsl_write_pointer(ssd);
@@ -1549,7 +1553,7 @@ void cmt_dirty (struct ssd *ssd, uint64_t lpn)
 
 void cmt_oper (struct ssd *ssd, uint64_t lpn)	//run cmt operation, return cmt latency
 {
-	fprintf(fp, "%d run cmt_oper...\n", ssd->sp.trnsl_gc_thres_lines);
+	fprintf(fp, "_____________________%d run cmt_oper... lpn %lu, mvpn %lu\n", ssd->sp.trnsl_gc_thres_lines, lpn, lpn/1024);
 	ssd->CmtHit++;
 	//uint64_t mvpn = lpn / 1024;
 	if(cmt_find(ssd, lpn))	//cmt hit
