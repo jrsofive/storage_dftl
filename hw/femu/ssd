@@ -1,0 +1,956 @@
+intr.c:9:    if (!msix_enabled(&(n->parent_obj))) {
+intr.c:23:    virq = kvm_irqchip_add_msi_route(&c, vector_n, &n->parent_obj);
+intr.c:56:    for (qid = 1; qid <= n->nr_io_queues; qid++) {
+intr.c:57:        cq = n->cq[qid];
+intr.c:67:    if (n->vector_poll_started) {
+intr.c:68:        msix_unset_vector_notifiers(&n->parent_obj);
+intr.c:69:        n->vector_poll_started = false;
+intr.c:81:    for (qid = 1; qid <= n->nr_io_queues; qid++) {
+intr.c:82:        cq = n->cq[qid];
+intr.c:120:    for (uint32_t qid = 1; qid <= n->nr_io_queues; qid++) {
+intr.c:121:        cq = n->cq[qid];
+intr.c:145:    for (uint32_t qid = 1; qid <= n->nr_io_queues; qid++) {
+intr.c:146:        cq = n->cq[qid];
+intr.c:171:        if (msix_enabled(&(n->parent_obj))) {
+intr.c:172:            msix_notify(&(n->parent_obj), cq->vector);
+intr.c:173:        } else if (msi_enabled(&(n->parent_obj))) {
+intr.c:174:            if (!(n->bar.intms & (1 << cq->vector))) {
+intr.c:175:                msi_notify(&(n->parent_obj), cq->vector);
+intr.c:178:            pci_irq_pulse(&n->parent_obj);
+intr.c:220:    if (cq->irq_enabled && !n->vector_poll_started) {
+intr.c:221:        n->vector_poll_started = true;
+intr.c:222:        if (msix_set_vector_notifiers(&n->parent_obj, nvme_vector_unmask,
+bbssd/bb.c:16:    struct ssd *ssd = n->ssd = g_malloc0(sizeof(struct ssd));
+bbssd/bb.c:20:    ssd->dataplane_started_ptr = &n->dataplane_started;
+bbssd/bb.c:21:    ssd->ssdname = (char *)n->devname;
+bbssd/bb.c:28:    struct ssd *ssd = n->ssd;
+bbssd/bb.c:34:        femu_log("%s,FEMU GC Delay Emulation [Enabled]!\n", n->devname);
+bbssd/bb.c:38:        femu_log("%s,FEMU GC Delay Emulation [Disabled]!\n", n->devname);
+bbssd/bb.c:45:        femu_log("%s,FEMU Delay Emulation [Enabled]!\n", n->devname);
+bbssd/bb.c:52:        femu_log("%s,FEMU Delay Emulation [Disabled]!\n", n->devname);
+bbssd/bb.c:55:        n->nr_tt_ios = 0;
+bbssd/bb.c:56:        n->nr_tt_late_ios = 0;
+bbssd/bb.c:57:        femu_log("%s,Reset tt_late_ios/tt_ios,%lu/%lu\n", n->devname,
+bbssd/bb.c:58:                n->nr_tt_late_ios, n->nr_tt_ios);
+bbssd/bb.c:61:        n->print_log = true;
+bbssd/bb.c:62:        femu_log("%s,Log print [Enabled]!\n", n->devname);
+bbssd/bb.c:65:        n->print_log = false;
+bbssd/bb.c:66:        femu_log("%s,Log print [Disabled]!\n", n->devname);
+bbssd/bb.c:69:        printf("FEMU:%s,Not implemented flip cmd (%lu)\n", n->devname, cdw10);
+bbssd/bb.c:104:    n->ext_ops = (FemuExtCtrlOps) {
+bbssd/ftl.c:239:    spp->secsz = n->bb_params.secsz; 
+bbssd/ftl.c:240:    spp->secs_per_pg = n->bb_params.secs_per_pg; 
+bbssd/ftl.c:241:    spp->pgs_per_blk = n->bb_params.pgs_per_blk; 
+bbssd/ftl.c:242:    spp->blks_per_pl = n->bb_params.blks_per_pl;
+bbssd/ftl.c:243:    spp->pls_per_lun = n->bb_params.pls_per_lun; 
+bbssd/ftl.c:244:    spp->luns_per_ch = n->bb_params.luns_per_ch; 
+bbssd/ftl.c:245:    spp->nchs = n->bb_params.nchs; 
+bbssd/ftl.c:247:    spp->pg_rd_lat = n->bb_params.pg_rd_lat;
+bbssd/ftl.c:248:    spp->pg_wr_lat = n->bb_params.pg_wr_lat;
+bbssd/ftl.c:249:    spp->blk_er_lat = n->bb_params.blk_er_lat;
+bbssd/ftl.c:250:    spp->ch_xfer_lat = n->bb_params.ch_xfer_lat;
+bbssd/ftl.c:279:    spp->gc_thres_pcent = n->bb_params.gc_thres_pcent/100.0;
+bbssd/ftl.c:281:    spp->gc_thres_pcent_high = n->bb_params.gc_thres_pcent_high/100.0;
+bbssd/ftl.c:323:    lun->npls = spp->pls_per_lun;
+bbssd/ftl.c:324:    lun->pl = g_malloc0(sizeof(struct nand_plane) * lun->npls);
+bbssd/ftl.c:325:    for (int i = 0; i < lun->npls; i++) {
+bbssd/ftl.c:326:        ssd_init_nand_plane(&lun->pl[i], spp);
+bbssd/ftl.c:328:    lun->next_lun_avail_time = 0;
+bbssd/ftl.c:329:    lun->busy = false;
+bbssd/ftl.c:365:    struct ssd *ssd = n->ssd;
+bbssd/ftl.c:436:    return &(lun->pl[ppa->g.pl]);
+bbssd/ftl.c:470:        nand_stime = (lun->next_lun_avail_time < cmd_stime) ? cmd_stime : \
+bbssd/ftl.c:471:                     lun->next_lun_avail_time;
+bbssd/ftl.c:472:        lun->next_lun_avail_time = nand_stime + spp->pg_rd_lat;
+bbssd/ftl.c:473:        lat = lun->next_lun_avail_time - cmd_stime;
+bbssd/ftl.c:475:        lun->next_lun_avail_time = nand_stime + spp->pg_rd_lat;
+bbssd/ftl.c:478:        chnl_stime = (ch->next_ch_avail_time < lun->next_lun_avail_time) ? \
+bbssd/ftl.c:479:            lun->next_lun_avail_time : ch->next_ch_avail_time;
+bbssd/ftl.c:488:        nand_stime = (lun->next_lun_avail_time < cmd_stime) ? cmd_stime : \
+bbssd/ftl.c:489:                     lun->next_lun_avail_time;
+bbssd/ftl.c:491:            lun->next_lun_avail_time = nand_stime + spp->pg_wr_lat;
+bbssd/ftl.c:493:            lun->next_lun_avail_time = nand_stime + spp->pg_wr_lat;
+bbssd/ftl.c:495:        lat = lun->next_lun_avail_time - cmd_stime;
+bbssd/ftl.c:503:        nand_stime = (lun->next_lun_avail_time < ch->next_ch_avail_time) ? \
+bbssd/ftl.c:504:            ch->next_ch_avail_time : lun->next_lun_avail_time;
+bbssd/ftl.c:505:        lun->next_lun_avail_time = nand_stime + spp->pg_wr_lat;
+bbssd/ftl.c:507:        lat = lun->next_lun_avail_time - cmd_stime;
+bbssd/ftl.c:513:        nand_stime = (lun->next_lun_avail_time < cmd_stime) ? cmd_stime : \
+bbssd/ftl.c:514:                     lun->next_lun_avail_time;
+bbssd/ftl.c:515:        lun->next_lun_avail_time = nand_stime + spp->blk_er_lat;
+bbssd/ftl.c:517:        lat = lun->next_lun_avail_time - cmd_stime;
+bbssd/ftl.c:663:    new_lun->gc_endtime = new_lun->next_lun_avail_time;
+bbssd/ftl.c:869:    struct ssd *ssd = n->ssd;
+bbssd/ftl.c:880:    ssd->to_ftl = n->to_ftl;
+bbssd/ftl.c:881:    ssd->to_poller = n->to_poller;
+bbssd/ftl.c:884:        for (i = 1; i <= n->nr_pollers; i++) {
+Binary file bbssd/.ftl.c.swp matches
+ocssd/oc12.c:28:    Oc12IdGroup *c = &ln->id_ctrl.groups[0];
+ocssd/oc12.c:46:    if (r > ln->params.total_units) {
+ocssd/oc12.c:75:    uint64_t oft = sec_idx * ln->meta_len + ln->int_meta_size;
+ocssd/oc12.c:76:    uint8_t *tgt_sos_meta_buf = &ln->meta_buf[oft];
+ocssd/oc12.c:78:    assert(oft + ln->params.sos < ln->meta_tbytes);
+ocssd/oc12.c:79:    memcpy(tgt_sos_meta_buf, meta, ln->params.sos);
+ocssd/oc12.c:88:    uint64_t oft = sec_idx * ln->meta_len + ln->int_meta_size;
+ocssd/oc12.c:89:    uint8_t *tgt_sos_meta_buf = &ln->meta_buf[oft];
+ocssd/oc12.c:91:    assert(oft + ln->params.sos < ln->meta_tbytes);
+ocssd/oc12.c:92:    memcpy(meta, tgt_sos_meta_buf, ln->params.sos);
+ocssd/oc12.c:100:    uint64_t oft = sec_idx * ln->meta_len;
+ocssd/oc12.c:101:    uint8_t *tgt_sec_meta_buf = &ln->meta_buf[oft];
+ocssd/oc12.c:103:    assert(oft + ln->meta_len < ln->meta_tbytes);
+ocssd/oc12.c:105:    memcpy(state, tgt_sec_meta_buf, ln->int_meta_size);
+ocssd/oc12.c:117:    Oc12IdGroup *c = &ln->id_ctrl.groups[0];
+ocssd/oc12.c:126:    if (ln->strict && nr_ppas != 1) {
+ocssd/oc12.c:155:    mask |= ln->ppaf.ch_mask;   // Construct mask
+ocssd/oc12.c:156:    mask |= ln->ppaf.lun_mask;
+ocssd/oc12.c:157:    mask |= ln->ppaf.blk_mask;
+ocssd/oc12.c:168:            pl_bgn = (ppa & ln->ppaf.pln_mask) >> ln->ppaf.pln_offset;
+ocssd/oc12.c:177:            ppa_pl |= pl << ln->ppaf.pln_offset;
+ocssd/oc12.c:196:            for (pg = 0; pg < ln->params.pgs_per_blk; ++pg) {
+ocssd/oc12.c:197:                for (sec = 0; sec < ln->params.sec_per_pg; ++sec) {
+ocssd/oc12.c:201:                    ppa_sec |= pg << ln->ppaf.pg_offset;
+ocssd/oc12.c:202:                    ppa_sec |= pl << ln->ppaf.pln_offset;
+ocssd/oc12.c:203:                    ppa_sec |= sec << ln->ppaf.sec_offset;
+ocssd/oc12.c:207:                    memcpy(&ln->meta_buf[off * ln->meta_len], &state, ln->int_meta_size);
+ocssd/oc12.c:219:    /* The n-th sector in the flat addr space */
+ocssd/oc12.c:221:    uint64_t oft = sec_idx * ln->meta_len;
+ocssd/oc12.c:223:    uint8_t *tgt_sec_meta_buf = &ln->meta_buf[oft];
+ocssd/oc12.c:225:    assert(oft + ln->meta_len < ln->meta_tbytes);
+ocssd/oc12.c:235:    memcpy(tgt_sec_meta_buf, &new_state, ln->int_meta_size);
+ocssd/oc12.c:242:    return meta + (index * ln->params.sos);
+ocssd/oc12.c:250:    Oc12Ctrl *ln = n->oc12_ctrl;
+ocssd/oc12.c:260:    if (nlb > ln->params.max_sec_per_rq) {
+ocssd/oc12.c:262:                 ln->params.max_sec_per_rq);
+ocssd/oc12.c:265:    if ((is_write) && (nlb < ln->params.sec_per_pl)) {
+ocssd/oc12.c:268:                 ln->params.sec_per_pl);
+ocssd/oc12.c:281:    if (n->id_ctrl.mdts && data_size > n->page_size * (1 << n->id_ctrl.mdts)) {
+ocssd/oc12.c:317:    Oc12Ctrl *ln = n->oc12_ctrl;
+ocssd/oc12.c:319:    int max_sec_per_rq = ln->params.max_sec_per_rq;
+ocssd/oc12.c:329:        cur_pg_addr = (ppa & (~(ln->ppaf.sec_mask)) & (~(ln->ppaf.pln_mask)));
+ocssd/oc12.c:340:            bucket[secs_idx].page_type = get_page_type(n->flash_type, bucket[secs_idx].pg);
+ocssd/oc12.c:358:    Oc12Ctrl *ln = n->oc12_ctrl;
+ocssd/oc12.c:359:    Oc12IdGroup *c = &ln->id_ctrl.groups[0];
+ocssd/oc12.c:360:    int max_sec_per_rq = ln->params.max_sec_per_rq;
+ocssd/oc12.c:427:    Oc12Ctrl *ln = n->oc12_ctrl;
+ocssd/oc12.c:449:    msl = g_malloc0(ln->params.sos * nlb);
+ocssd/oc12.c:473:        nvme_addr_write(n, meta, (void *)msl, nlb * ln->params.sos);
+ocssd/oc12.c:482:    backend_rw(n->mbe, &req->qsg, psl, req->is_write);
+ocssd/oc12.c:502:    Oc12Ctrl *ln = n->oc12_ctrl;
+ocssd/oc12.c:523:    msl = g_malloc0(ln->params.sos * nlb);
+ocssd/oc12.c:538:        nvme_addr_read(n, meta, (void *)msl, nlb * ln->params.sos);
+ocssd/oc12.c:552:        nvme_addr_write(n, meta, (void *)msl, nlb * ln->params.sos);
+ocssd/oc12.c:561:    backend_rw(n->mbe, &req->qsg, psl, req->is_write);
+ocssd/oc12.c:590:    if (nsid == 0 || nsid > n->num_namespaces) {
+ocssd/oc12.c:594:    return dma_read_prp(n, (uint8_t *)&n->oc12_ctrl->id_ctrl,
+ocssd/oc12.c:609:    if (nsid == 0 || nsid > n->num_namespaces) {
+ocssd/oc12.c:612:    ns = &n->namespaces[nsid - 1];
+ocssd/oc12.c:631:    Oc12Ctrl *ln = n->oc12_ctrl;
+ocssd/oc12.c:632:    Oc12IdGroup *c = &ln->id_ctrl.groups[0];
+ocssd/oc12.c:644:    if (nsid == 0 || nsid > n->num_namespaces) {
+ocssd/oc12.c:648:    ns = &n->namespaces[nsid - 1];
+ocssd/oc12.c:649:    ch = (ppa & ln->ppaf.ch_mask) >> ln->ppaf.ch_offset;
+ocssd/oc12.c:650:    lun = (ppa & ln->ppaf.lun_mask) >> ln->ppaf.lun_offset;
+ocssd/oc12.c:665:    Oc12Ctrl *ln = n->oc12_ctrl;
+ocssd/oc12.c:666:    Oc12IdGroup *c = &ln->id_ctrl.groups[0];
+ocssd/oc12.c:674:    uint64_t ppas[ln->params.max_sec_per_rq];
+ocssd/oc12.c:678:    if (nsid == 0 || nsid > n->num_namespaces) {
+ocssd/oc12.c:682:    ns = &n->namespaces[nsid - 1];
+ocssd/oc12.c:686:        ch = (ppas[0] & ln->ppaf.ch_mask) >> ln->ppaf.ch_offset;
+ocssd/oc12.c:687:        lun = (ppas[0] & ln->ppaf.lun_mask) >> ln->ppaf.lun_offset;
+ocssd/oc12.c:688:        blk = (ppas[0] & ln->ppaf.blk_mask) >> ln->ppaf.blk_offset;
+ocssd/oc12.c:698:            ch = (ppas[i] & ln->ppaf.ch_mask) >> ln->ppaf.ch_offset;
+ocssd/oc12.c:699:            lun = (ppas[i] & ln->ppaf.lun_mask) >> ln->ppaf.lun_offset;
+ocssd/oc12.c:700:            blk = (ppas[i] & ln->ppaf.blk_mask) >> ln->ppaf.blk_offset;
+ocssd/oc12.c:711:    for (uint32_t i = 0; i < n->num_namespaces; i++) {
+ocssd/oc12.c:712:        NvmeNamespace *ns = &n->namespaces[i];
+ocssd/oc12.c:744:    Oc12Ctrl *ln = n->oc12_ctrl;
+ocssd/oc12.c:747:    uint64_t psl[ln->params.max_sec_per_rq];
+ocssd/oc12.c:760:    Oc12IdCtrl *ln_id = &ln->id_ctrl;
+ocssd/oc12.c:770:    ln_id->ppaf.sect_len    = qemu_fls(cpu_to_le16(ln->params.sec_per_pg) - 1);
+ocssd/oc12.c:772:    ln_id->ppaf.pln_len     = qemu_fls(cpu_to_le16(ln->params.num_pln) - 1);
+ocssd/oc12.c:774:    ln_id->ppaf.pg_len      = qemu_fls(cpu_to_le16(ln->params.pgs_per_blk) - 1);
+ocssd/oc12.c:776:    ln_id->ppaf.blk_len     = qemu_fls(cpu_to_le16(ln->id_ctrl.groups[0].num_blk) - 1);
+ocssd/oc12.c:778:    ln_id->ppaf.lun_len     = qemu_fls(cpu_to_le16(ln->params.num_lun) - 1);
+ocssd/oc12.c:780:    ln_id->ppaf.ch_len      = qemu_fls(cpu_to_le16(ln->params.num_ch) - 1);
+ocssd/oc12.c:786:    ln->int_meta_size = 4;
+ocssd/oc12.c:789:     * Internal meta are the first "ln->int_meta_size" bytes
+ocssd/oc12.c:790:     * Then comes the tgt_oob_len which is the following ln->param.sos bytes
+ocssd/oc12.c:792:    ln->meta_len    = ln->int_meta_size + ln->params.sos;
+ocssd/oc12.c:793:    ln->meta_tbytes = ln->meta_len * ln->params.total_secs;
+ocssd/oc12.c:796:    femu_debug("Allocating OOB: %.1f MB\n", ln->meta_tbytes / 1024 / 1024.0);
+ocssd/oc12.c:797:    ln->meta_buf = g_malloc0(ln->meta_tbytes);
+ocssd/oc12.c:804:    Oc12Ctrl *ln = n->oc12_ctrl;
+ocssd/oc12.c:805:    Oc12IdGroup *c = &ln->id_ctrl.groups[0];
+ocssd/oc12.c:836:        ret = pthread_spin_destroy(&n->chnl_locks[i]);
+ocssd/oc12.c:841:        ret = pthread_spin_destroy(&n->chip_locks[i]);
+ocssd/oc12.c:854:        n->chnl_next_avail_time[i] = 0;
+ocssd/oc12.c:857:        ret = pthread_spin_init(&n->chnl_locks[i], PTHREAD_PROCESS_SHARED);
+ocssd/oc12.c:862:        n->chip_next_avail_time[i] = 0;
+ocssd/oc12.c:865:        ret = pthread_spin_init(&n->chip_locks[i], PTHREAD_PROCESS_SHARED);
+ocssd/oc12.c:878:    ln = n->oc12_ctrl;
+ocssd/oc12.c:879:    lps = &ln->params;
+ocssd/oc12.c:881:    lps->sec_size = n->oc_params.sec_size;
+ocssd/oc12.c:882:    lps->sec_per_pg = n->oc_params.secs_per_pg;
+ocssd/oc12.c:883:    lps->pgs_per_blk = n->oc_params.pgs_per_blk;
+ocssd/oc12.c:884:    lps->max_sec_per_rq = n->oc_params.max_sec_per_rq;
+ocssd/oc12.c:885:    lps->num_ch = n->oc_params.num_ch;
+ocssd/oc12.c:886:    lps->num_lun = n->oc_params.num_lun;
+ocssd/oc12.c:887:    lps->num_pln = n->oc_params.num_pln;
+ocssd/oc12.c:888:    lps->sos = n->oc_params.sos;
+ocssd/oc12.c:904:    ln = n->oc12_ctrl = g_malloc0(sizeof(Oc12Ctrl));
+ocssd/oc12.c:905:    ppaf = &ln->id_ctrl.ppaf;
+ocssd/oc12.c:906:    lps = &ln->params;
+ocssd/oc12.c:918:    for (i = 0; i < n->num_namespaces; i++) {
+ocssd/oc12.c:919:        ns = &n->namespaces[i];
+ocssd/oc12.c:928:        c = &ln->id_ctrl.groups[0];
+ocssd/oc12.c:1003:        ln->ppaf.sec_offset = ppaf->sect_offset;
+ocssd/oc12.c:1004:        ln->ppaf.pln_offset = ppaf->pln_offset;
+ocssd/oc12.c:1005:        ln->ppaf.pg_offset  = ppaf->pg_offset;
+ocssd/oc12.c:1006:        ln->ppaf.blk_offset = ppaf->blk_offset;
+ocssd/oc12.c:1007:        ln->ppaf.lun_offset = ppaf->lun_offset;
+ocssd/oc12.c:1008:        ln->ppaf.ch_offset  = ppaf->ch_offset;
+ocssd/oc12.c:1011:        ln->ppaf.sec_mask = ((1 << ppaf->sect_len) - 1) << ln->ppaf.sec_offset;
+ocssd/oc12.c:1012:        ln->ppaf.pln_mask = ((1 << ppaf->pln_len) - 1)  << ln->ppaf.pln_offset;
+ocssd/oc12.c:1013:        ln->ppaf.pg_mask  = ((1 << ppaf->pg_len) - 1)   << ln->ppaf.pg_offset;
+ocssd/oc12.c:1014:        ln->ppaf.blk_mask = ((1 << ppaf->blk_len) - 1)  << ln->ppaf.blk_offset;
+ocssd/oc12.c:1015:        ln->ppaf.lun_mask = ((1 << ppaf->lun_len) -1)   << ln->ppaf.lun_offset;
+ocssd/oc12.c:1016:        ln->ppaf.ch_mask  = ((1 << ppaf->ch_len) - 1)   << ln->ppaf.ch_offset;
+ocssd/oc12.c:1034:    ret = (n->oc12_ctrl->read_l2p_tbl) ? oc12_read_tbls(n) : 0;
+ocssd/oc12.c:1086:    NVME_CAP_SET_OC(n->bar.cap, 1);
+ocssd/oc12.c:1089:    for (i = 0; i < n->num_namespaces; i++) {
+ocssd/oc12.c:1090:        NvmeNamespace *ns = &n->namespaces[i];
+ocssd/oc12.c:1100:    n->ext_ops = (FemuExtCtrlOps) {
+ocssd/oc20.c:286:    Oc20Params *params = &n->params.oc20;
+ocssd/oc20.c:352:    Oc20Params *params = &n->params.oc20;
+ocssd/oc20.c:428:    Oc20Params *params = &n->params.oc20;
+ocssd/oc20.c:482:    Oc20Params *params = &n->params.oc20;
+ocssd/oc20.c:506:                    if (NVME_ERR_REC_DULBE(n->features.err_rec)) {
+ocssd/oc20.c:636:    Oc20Params *params = &n->params.oc20;
+ocssd/oc20.c:663:    Oc20Params *params = &n->params.oc20;
+ocssd/oc20.c:691:    NvmeNamespace *ns = &n->namespaces[nsid - 1];
+ocssd/oc20.c:699:    NvmeNamespace *ns = &n->namespaces[nsid - 1];
+ocssd/oc20.c:758:    backend_rw(n->mbe, &req->qsg, aio_sector_list, req->is_write);
+ocssd/oc20.c:780:    if (unlikely(nsid == 0 || nsid > n->num_namespaces)) {
+ocssd/oc20.c:784:    ns = &n->namespaces[nsid - 1];
+ocssd/oc20.c:838:    if (unlikely(nsid == 0 || nsid > n->num_namespaces)) {
+ocssd/oc20.c:843:    ns = &n->namespaces[nsid - 1];
+ocssd/oc20.c:980:    params = &n->params;
+ocssd/oc20.c:992:    for (i = 1; i < 16 && ms_min <= n->ms_max; i++) {
+ocssd/oc20.c:1007:    return n->ns_size / ((1 << NVME_ID_NS_LBADS(ns)) + NVME_ID_NS_MS(ns));
+ocssd/oc20.c:1014:    switch (n->params.dlfeat) {
+ocssd/oc20.c:1037:    uint8_t sec_per_pg = n->oc_params.secs_per_pg;
+ocssd/oc20.c:1038:    uint16_t pgs_per_blk = n->oc_params.pgs_per_blk;
+ocssd/oc20.c:1039:    uint8_t num_ch = n->oc_params.num_ch;
+ocssd/oc20.c:1040:    uint8_t num_lun = n->oc_params.num_lun;
+ocssd/oc20.c:1041:    uint8_t num_pln = n->oc_params.num_pln;
+ocssd/oc20.c:1167:    Oc20Ctrl *ln = n->ext_ops.state;
+ocssd/oc20.c:1169:    Oc20Params *params = &n->params.oc20;
+ocssd/oc20.c:1190:    id_ns->lbaf[0].lbads = 63 - clz64(ln->blk_hdr.sector_size);
+ocssd/oc20.c:1191:    id_ns->lbaf[0].ms = ln->blk_hdr.md_size;
+ocssd/oc20.c:1198:                                        ln->blk_hdr.sector_size);
+ocssd/oc20.c:1278:    Oc20Ctrl *ln = n->ext_ops.state;
+ocssd/oc20.c:1281:    ln->blk_hdr = (Oc20Header) {
+ocssd/oc20.c:1285:        .ns_size = n->ns_size,
+ocssd/oc20.c:1290:    for (i = 0; i < n->num_namespaces; i++) {
+ocssd/oc20.c:1291:        NvmeNamespace *ns = &n->namespaces[i];
+ocssd/oc20.c:1294:        ns->blk.begin = ln->blk_hdr.sector_size + i * ln->blk_hdr.ns_size;
+ocssd/oc20.c:1319:        ret = pthread_spin_destroy(&n->chnl_locks[i]);
+ocssd/oc20.c:1324:        ret = pthread_spin_destroy(&n->chip_locks[i]);
+ocssd/oc20.c:1337:        n->chnl_next_avail_time[i] = 0;
+ocssd/oc20.c:1340:        ret = pthread_spin_init(&n->chnl_locks[i], PTHREAD_PROCESS_SHARED);
+ocssd/oc20.c:1345:        n->chip_next_avail_time[i] = 0;
+ocssd/oc20.c:1348:        ret = pthread_spin_init(&n->chip_locks[i], PTHREAD_PROCESS_SHARED);
+ocssd/oc20.c:1357:    NVME_CAP_SET_OC(n->bar.cap, 1);
+ocssd/oc20.c:1368:    for (i = 0; i < n->num_namespaces; i++) {
+ocssd/oc20.c:1369:        NvmeNamespace *ns = &n->namespaces[i];
+ocssd/oc20.c:1379:    n->ext_ops = (FemuExtCtrlOps) {
+nand/nand.h:113:#define PPA_CH(ln, ppa)  ((ppa & ln->ppaf.ch_mask) >> ln->ppaf.ch_offset)
+nand/nand.h:114:#define PPA_LUN(ln, ppa) ((ppa & ln->ppaf.lun_mask) >> ln->ppaf.lun_offset)
+nand/nand.h:115:#define PPA_PLN(ln, ppa) ((ppa & ln->ppaf.pln_mask) >> ln->ppaf.pln_offset)
+nand/nand.h:116:#define PPA_BLK(ln, ppa) ((ppa & ln->ppaf.blk_mask) >> ln->ppaf.blk_offset)
+nand/nand.h:117:#define PPA_PG(ln, ppa)  ((ppa & ln->ppaf.pg_mask) >> ln->ppaf.pg_offset)
+nand/nand.h:118:#define PPA_SEC(ln, ppa) ((ppa & ln->ppaf.sec_mask) >> ln->ppaf.sec_offset)
+timing-model/timing.c:5:    if (n->flash_type == TLC) {
+timing-model/timing.c:6:        n->upg_rd_lat_ns = TLC_UPPER_PAGE_READ_LATENCY_NS;
+timing-model/timing.c:7:        n->cpg_rd_lat_ns = TLC_CENTER_PAGE_READ_LATENCY_NS;
+timing-model/timing.c:8:        n->lpg_rd_lat_ns = TLC_LOWER_PAGE_READ_LATENCY_NS;
+timing-model/timing.c:9:        n->upg_wr_lat_ns = TLC_UPPER_PAGE_WRITE_LATENCY_NS;
+timing-model/timing.c:10:        n->cpg_wr_lat_ns = TLC_CENTER_PAGE_WRITE_LATENCY_NS;
+timing-model/timing.c:11:        n->lpg_wr_lat_ns = TLC_LOWER_PAGE_WRITE_LATENCY_NS;
+timing-model/timing.c:12:        n->blk_er_lat_ns = TLC_BLOCK_ERASE_LATENCY_NS;
+timing-model/timing.c:13:        n->chnl_pg_xfer_lat_ns = TLC_CHNL_PAGE_TRANSFER_LATENCY_NS;
+timing-model/timing.c:14:    } else if (n->flash_type == QLC) {
+timing-model/timing.c:15:        n->upg_rd_lat_ns  = QLC_UPPER_PAGE_READ_LATENCY_NS;
+timing-model/timing.c:16:        n->cupg_rd_lat_ns = QLC_CENTER_UPPER_PAGE_READ_LATENCY_NS;
+timing-model/timing.c:17:        n->clpg_rd_lat_ns = QLC_CENTER_LOWER_PAGE_READ_LATENCY_NS;
+timing-model/timing.c:18:        n->lpg_rd_lat_ns  = QLC_LOWER_PAGE_READ_LATENCY_NS;
+timing-model/timing.c:19:        n->upg_wr_lat_ns  = QLC_UPPER_PAGE_WRITE_LATENCY_NS;
+timing-model/timing.c:20:        n->cupg_wr_lat_ns = QLC_CENTER_UPPER_PAGE_WRITE_LATENCY_NS;
+timing-model/timing.c:21:        n->clpg_wr_lat_ns = QLC_CENTER_LOWER_PAGE_WRITE_LATENCY_NS;
+timing-model/timing.c:22:        n->lpg_wr_lat_ns  = QLC_LOWER_PAGE_WRITE_LATENCY_NS;
+timing-model/timing.c:23:        n->blk_er_lat_ns  = QLC_BLOCK_ERASE_LATENCY_NS;
+timing-model/timing.c:24:        n->chnl_pg_xfer_lat_ns = QLC_CHNL_PAGE_TRANSFER_LATENCY_NS;
+timing-model/timing.c:25:    } else if (n->flash_type == MLC) {
+timing-model/timing.c:26:        n->upg_rd_lat_ns = MLC_UPPER_PAGE_READ_LATENCY_NS;
+timing-model/timing.c:27:        n->lpg_rd_lat_ns = MLC_LOWER_PAGE_READ_LATENCY_NS;
+timing-model/timing.c:28:        n->upg_wr_lat_ns = MLC_UPPER_PAGE_WRITE_LATENCY_NS;
+timing-model/timing.c:29:        n->lpg_wr_lat_ns = MLC_LOWER_PAGE_WRITE_LATENCY_NS;
+timing-model/timing.c:30:        n->blk_er_lat_ns = MLC_BLOCK_ERASE_LATENCY_NS;
+timing-model/timing.c:31:        n->chnl_pg_xfer_lat_ns = MLC_CHNL_PAGE_TRANSFER_LATENCY_NS;
+timing-model/timing.c:46:    pthread_spin_lock(&n->chnl_locks[ch]);
+timing-model/timing.c:47:    if (now < n->chnl_next_avail_time[ch]) {
+timing-model/timing.c:48:        start_data_xfer_ts = n->chnl_next_avail_time[ch];
+timing-model/timing.c:56:        data_ready_ts = start_data_xfer_ts + n->chnl_pg_xfer_lat_ns * 2;
+timing-model/timing.c:66:    n->chnl_next_avail_time[ch] = data_ready_ts;
+timing-model/timing.c:67:    pthread_spin_unlock(&n->chnl_locks[ch]);
+timing-model/timing.c:81:        lat = get_page_read_latency(n->flash_type, page_type);
+timing-model/timing.c:85:        lat = get_page_write_latency(n->flash_type, page_type);
+timing-model/timing.c:88:        lat = get_blk_erase_latency(n->flash_type);
+timing-model/timing.c:94:    pthread_spin_lock(&n->chip_locks[lunid]);
+timing-model/timing.c:95:    if (now < n->chip_next_avail_time[lunid]) {
+timing-model/timing.c:96:        n->chip_next_avail_time[lunid] += lat;
+timing-model/timing.c:98:        n->chip_next_avail_time[lunid] = now + lat;
+timing-model/timing.c:100:    io_done_ts = n->chip_next_avail_time[lunid];
+timing-model/timing.c:101:    pthread_spin_unlock(&n->chip_locks[lunid]);
+nvme-io.c:53:            addr = sq->dma_addr + sq->head * n->sqe_size;
+nvme-io.c:56:            addr = nvme_discontig(sq->prp_list, sq->head, n->page_size,
+nvme-io.c:57:                                  n->sqe_size);
+nvme-io.c:71:        if (n->print_log) {
+nvme-io.c:79:            int rc = femu_ring_enqueue(n->to_ftl[index_poller], (void *)&req, 1);
+nvme-io.c:105:    if (n->print_log) {
+nvme-io.c:106:        femu_debug("%s,req,lba:%lu,lat:%lu\n", n->devname, req->slba, req->reqlat);
+nvme-io.c:113:        addr = cq->dma_addr + cq->tail * n->cqe_size;
+nvme-io.c:116:        addr = nvme_discontig(cq->prp_list, cq->tail, n->page_size, n->cqe_size);
+nvme-io.c:128:    struct rte_ring *rp = n->to_ftl[index_poller];
+nvme-io.c:129:    pqueue_t *pq = n->pq[index_poller];
+nvme-io.c:136:        rp = n->to_poller[index_poller];
+nvme-io.c:156:        cq = n->cq[req->sq->sqid];
+nvme-io.c:163:        n->nr_tt_ios++;
+nvme-io.c:165:            n->nr_tt_late_ios++;
+nvme-io.c:166:            if (n->print_log) {
+nvme-io.c:168:                           n->devname, pqueue_size(pq), now - req->expire_time,
+nvme-io.c:169:                           n->nr_tt_late_ios, n->nr_tt_ios);
+nvme-io.c:172:        n->should_isr[req->sq->sqid] = true;
+nvme-io.c:178:    switch (n->multipoller_enabled) {
+nvme-io.c:180:        nvme_isr_notify_io(n->cq[index_poller]);
+nvme-io.c:183:        for (i = 1; i <= n->nr_io_queues; i++) {
+nvme-io.c:184:            if (n->should_isr[i]) {
+nvme-io.c:185:                nvme_isr_notify_io(n->cq[i]);
+nvme-io.c:186:                n->should_isr[i] = false;
+nvme-io.c:199:    switch (n->multipoller_enabled) {
+nvme-io.c:202:            if ((!n->dataplane_started)) {
+nvme-io.c:207:            NvmeSQueue *sq = n->sq[index];
+nvme-io.c:208:            NvmeCQueue *cq = n->cq[index];
+nvme-io.c:217:            if ((!n->dataplane_started)) {
+nvme-io.c:222:            for (i = 1; i <= n->nr_io_queues; i++) {
+nvme-io.c:223:                NvmeSQueue *sq = n->sq[i];
+nvme-io.c:224:                NvmeCQueue *cq = n->cq[i];
+nvme-io.c:274:    ret = backend_rw(n->mbe, &req->qsg, &data_offset, req->is_write);
+nvme-io.c:342:    if (n->id_ctrl.mdts && data_size > n->page_size * (1 << n->id_ctrl.mdts)) {
+nvme-io.c:418:    if (nsid == 0 || nsid > n->num_namespaces) {
+nvme-io.c:423:    req->ns = ns = &n->namespaces[nsid - 1];
+nvme-io.c:427:        if (!n->id_ctrl.vwc || !n->features.volatile_wc) {
+nvme-io.c:432:        if (NVME_ONCS_DSM & n->oncs) {
+nvme-io.c:437:        if (NVME_ONCS_COMPARE & n->oncs) {
+nvme-io.c:442:        if (NVME_ONCS_WRITE_ZEROS & n->oncs) {
+nvme-io.c:447:        if (NVME_ONCS_WRITE_UNCORR & n->oncs) {
+nvme-io.c:452:        if (n->ext_ops.io_cmd) {
+nvme-io.c:453:            return n->ext_ops.io_cmd(n, ns, cmd, req);
+femu.c:13:    n->dataplane_started = false;
+femu.c:26:    for (i = 0; i <= n->nr_io_queues; i++) {
+femu.c:27:        if (n->sq[i] != NULL) {
+femu.c:28:            nvme_free_sq(n->sq[i], n);
+femu.c:31:    for (i = 0; i <= n->nr_io_queues; i++) {
+femu.c:32:        if (n->cq[i] != NULL) {
+femu.c:33:            nvme_free_cq(n->cq[i], n);
+femu.c:37:    n->bar.cc = 0;
+femu.c:38:    n->features.temp_thresh = 0x14d;
+femu.c:39:    n->temp_warn_issued = 0;
+femu.c:40:    n->dbs_addr = 0;
+femu.c:41:    n->dbs_addr_hva = 0;
+femu.c:42:    n->eis_addr = 0;
+femu.c:43:    n->eis_addr_hva = 0;
+femu.c:48:    uint32_t page_bits = NVME_CC_MPS(n->bar.cc) + 12;
+femu.c:51:    if (n->cq[0] || n->sq[0] || !n->bar.asq || !n->bar.acq ||
+femu.c:52:        n->bar.asq & (page_size - 1) || n->bar.acq & (page_size - 1) ||
+femu.c:53:        NVME_CC_MPS(n->bar.cc) < NVME_CAP_MPSMIN(n->bar.cap) ||
+femu.c:54:        NVME_CC_MPS(n->bar.cc) > NVME_CAP_MPSMAX(n->bar.cap) ||
+femu.c:55:        NVME_CC_IOCQES(n->bar.cc) < NVME_CTRL_CQES_MIN(n->id_ctrl.cqes) ||
+femu.c:56:        NVME_CC_IOCQES(n->bar.cc) > NVME_CTRL_CQES_MAX(n->id_ctrl.cqes) ||
+femu.c:57:        NVME_CC_IOSQES(n->bar.cc) < NVME_CTRL_SQES_MIN(n->id_ctrl.sqes) ||
+femu.c:58:        NVME_CC_IOSQES(n->bar.cc) > NVME_CTRL_SQES_MAX(n->id_ctrl.sqes) ||
+femu.c:59:        !NVME_AQA_ASQS(n->bar.aqa) || NVME_AQA_ASQS(n->bar.aqa) > 4095 ||
+femu.c:60:        !NVME_AQA_ACQS(n->bar.aqa) || NVME_AQA_ACQS(n->bar.aqa) > 4095) {
+femu.c:64:    n->page_bits = page_bits;
+femu.c:65:    n->page_size = 1 << n->page_bits;
+femu.c:66:    n->max_prp_ents = n->page_size / sizeof(uint64_t);
+femu.c:67:    n->cqe_size = 1 << NVME_CC_IOCQES(n->bar.cc);
+femu.c:68:    n->sqe_size = 1 << NVME_CC_IOSQES(n->bar.cc);
+femu.c:70:    nvme_init_cq(&n->admin_cq, n, n->bar.acq, 0, 0, NVME_AQA_ACQS(n->bar.aqa) +
+femu.c:72:    nvme_init_sq(&n->admin_sq, n, n->bar.asq, 0, 0, NVME_AQA_ASQS(n->bar.aqa) +
+femu.c:76:    if (n->ext_ops.start_ctrl) {
+femu.c:77:        n->ext_ops.start_ctrl(n);
+femu.c:87:        n->bar.intms |= data & 0xffffffff;
+femu.c:88:        n->bar.intmc = n->bar.intms;
+femu.c:91:        n->bar.intms &= ~(data & 0xffffffff);
+femu.c:92:        n->bar.intmc = n->bar.intms;
+femu.c:96:        if (!NVME_CC_EN(data) && !NVME_CC_EN(n->bar.cc) &&
+femu.c:97:                !NVME_CC_SHN(data) && !NVME_CC_SHN(n->bar.cc))
+femu.c:99:            n->bar.cc = data;
+femu.c:102:        if (NVME_CC_EN(data) && !NVME_CC_EN(n->bar.cc)) {
+femu.c:103:            n->bar.cc = data;
+femu.c:105:                n->bar.csts = NVME_CSTS_FAILED;
+femu.c:107:                n->bar.csts = NVME_CSTS_READY;
+femu.c:109:        } else if (!NVME_CC_EN(data) && NVME_CC_EN(n->bar.cc)) {
+femu.c:111:            n->bar.csts &= ~NVME_CSTS_READY;
+femu.c:113:        if (NVME_CC_SHN(data) && !(NVME_CC_SHN(n->bar.cc))) {
+femu.c:115:            n->bar.cc = data;
+femu.c:116:            n->bar.csts |= NVME_CSTS_SHST_COMPLETE;
+femu.c:117:        } else if (!NVME_CC_SHN(data) && NVME_CC_SHN(n->bar.cc)) {
+femu.c:118:            n->bar.csts &= ~NVME_CSTS_SHST_COMPLETE;
+femu.c:119:            n->bar.cc = data;
+femu.c:123:        n->bar.aqa = data & 0xffffffff;
+femu.c:126:        n->bar.asq = data;
+femu.c:129:        n->bar.asq |= data << 32;
+femu.c:132:        n->bar.acq = data;
+femu.c:135:        n->bar.acq |= data << 32;
+femu.c:145:    uint8_t *ptr = (uint8_t *)&n->bar;
+femu.c:148:    if (addr < sizeof(n->bar)) {
+femu.c:161:    if (((addr - 0x1000) >> (2 + n->db_stride)) & 1) {
+femu.c:164:        qid = ((addr - (0x1000 + (1 << (2 + n->db_stride)))) >> (3 +
+femu.c:165:                                                                 n->db_stride));
+femu.c:170:        cq = n->cq[qid];
+femu.c:181:        qid = (addr - 0x1000) >> (3 + n->db_stride);
+femu.c:185:        sq = n->sq[qid];
+femu.c:201:    if (n->dataplane_started) {
+femu.c:205:    if (addr & ((1 << (2 + n->db_stride)) - 1)) {
+femu.c:209:    if (((addr - 0x1000) >> (2 + n->db_stride)) & 1) {
+femu.c:212:        qid = ((addr - (0x1000 + (1 << (2 + n->db_stride)))) >> (3 +
+femu.c:213:                                                                 n->db_stride));
+femu.c:218:        cq = n->cq[qid];
+femu.c:231:        qid = (addr - 0x1000) >> (3 + n->db_stride);
+femu.c:235:        sq = n->sq[qid];
+femu.c:249:    if (addr < sizeof(n->bar)) {
+femu.c:262:    memcpy(&n->cmbuf[addr], &data, size);
+femu.c:270:    memcpy(&val, &n->cmbuf[addr], size);
+femu.c:297:    if ((n->num_namespaces == 0 || n->num_namespaces > NVME_MAX_NUM_NAMESPACES)
+femu.c:298:        || (n->nr_io_queues < 1 || n->nr_io_queues > NVME_MAX_QS) ||
+femu.c:299:        (n->db_stride > NVME_MAX_STRIDE) ||
+femu.c:300:        (n->max_q_ents < 1) ||
+femu.c:301:        (n->max_sqes > NVME_MAX_QUEUE_ES || n->max_cqes > NVME_MAX_QUEUE_ES ||
+femu.c:302:         n->max_sqes < NVME_MIN_SQUEUE_ES || n->max_cqes < NVME_MIN_CQUEUE_ES) ||
+femu.c:303:        (n->vwc > 1 || n->intc > 1 || n->cqr > 1 || n->extended > 1) ||
+femu.c:304:        (n->nlbaf > 16) ||
+femu.c:305:        (n->lba_index >= n->nlbaf) ||
+femu.c:306:        (n->meta && !n->mc) ||
+femu.c:307:        (n->extended && !(NVME_ID_NS_MC_EXTENDED(n->mc))) ||
+femu.c:308:        (!n->extended && n->meta && !(NVME_ID_NS_MC_SEPARATE(n->mc))) ||
+femu.c:309:        (n->dps && n->meta < 8) ||
+femu.c:310:        (n->dps && ((n->dps & DPS_FIRST_EIGHT) &&
+femu.c:311:                    !NVME_ID_NS_DPC_FIRST_EIGHT(n->dpc))) ||
+femu.c:312:        (n->dps && !(n->dps & DPS_FIRST_EIGHT) &&
+femu.c:313:         !NVME_ID_NS_DPC_LAST_EIGHT(n->dpc)) ||
+femu.c:314:        (n->dps & DPS_TYPE_MASK && !((n->dpc & NVME_ID_NS_DPC_TYPE_MASK) &
+femu.c:315:                                     (1 << ((n->dps & DPS_TYPE_MASK) - 1)))) ||
+femu.c:316:        (n->mpsmax > 0xf || n->mpsmax > n->mpsmin) ||
+femu.c:317:        (n->oacs & ~(NVME_OACS_FORMAT)) ||
+femu.c:318:        (n->oncs & ~(NVME_ONCS_COMPARE | NVME_ONCS_WRITE_UNCORR |
+femu.c:333:    id_ns->nlbaf         = n->nlbaf - 1;
+femu.c:334:    id_ns->flbas         = n->lba_index | (n->extended << 4);
+femu.c:335:    id_ns->mc            = n->mc;
+femu.c:336:    id_ns->dpc           = n->dpc;
+femu.c:337:    id_ns->dps           = n->dps;
+femu.c:345:    for (i = 0; i < n->nlbaf; i++) {
+femu.c:347:        id_ns->lbaf[i].ms    = cpu_to_le16(n->meta);
+femu.c:360:    num_blks = n->ns_size / ((1 << id_ns->lbaf[lba_index].lbads));
+femu.c:363:    n->csi = NVME_CSI_NVM;
+femu.c:377:    assert(n->num_namespaces == 1);
+femu.c:379:    for (i = 0; i < n->num_namespaces; i++) {
+femu.c:380:        NvmeNamespace *ns = &n->namespaces[i];
+femu.c:381:        ns->size = n->ns_size;
+femu.c:382:        ns->start_block = i * n->ns_size >> BDRV_SECTOR_BITS;
+femu.c:395:    NvmeIdCtrl *id = &n->id_ctrl;
+femu.c:396:    uint8_t *pci_conf = n->parent_obj.config;
+femu.c:408:    id->mdts         = n->mdts;
+femu.c:411:    id->oacs         = cpu_to_le16(n->oacs | NVME_OACS_DBBUF | NVME_OACS_DIRECTIVES);
+femu.c:412:    id->acl          = n->acl;
+femu.c:413:    id->aerl         = n->aerl;
+femu.c:416:    id->elpe         = n->elpe;
+femu.c:418:    id->sqes         = (n->max_sqes << 4) | 0x6;
+femu.c:419:    id->cqes         = (n->max_cqes << 4) | 0x4;
+femu.c:420:    id->nn           = cpu_to_le32(n->num_namespaces);
+femu.c:421:    id->oncs         = cpu_to_le16(n->oncs);
+femu.c:422:    subnqn           = g_strdup_printf("nqn.2019-08.org.qemu:%s", n->serial);
+femu.c:426:    id->vwc          = n->vwc;
+femu.c:433:    n->features.arbitration     = 0x1f0f0706;
+femu.c:434:    n->features.power_mgmt      = 0;
+femu.c:435:    n->features.temp_thresh     = 0x14d;
+femu.c:436:    n->features.err_rec         = 0;
+femu.c:437:    n->features.volatile_wc     = n->vwc;
+femu.c:438:    n->features.nr_io_queues   = ((n->nr_io_queues - 1) | ((n->nr_io_queues -
+femu.c:440:    n->features.int_coalescing  = n->intc_thresh | (n->intc_time << 8);
+femu.c:441:    n->features.write_atomicity = 0;
+femu.c:442:    n->features.async_config    = 0x0;
+femu.c:443:    n->features.sw_prog_marker  = 0;
+femu.c:445:    for (i = 0; i <= n->nr_io_queues; i++) {
+femu.c:446:        n->features.int_vector_config[i] = i | (n->intc << 16);
+femu.c:449:    n->bar.cap = 0;
+femu.c:450:    NVME_CAP_SET_MQES(n->bar.cap, n->max_q_ents);
+femu.c:451:    NVME_CAP_SET_CQR(n->bar.cap, n->cqr);
+femu.c:452:    NVME_CAP_SET_AMS(n->bar.cap, 1);
+femu.c:453:    NVME_CAP_SET_TO(n->bar.cap, 0xf);
+femu.c:454:    NVME_CAP_SET_DSTRD(n->bar.cap, n->db_stride);
+femu.c:455:    NVME_CAP_SET_NSSRS(n->bar.cap, 0);
+femu.c:456:    NVME_CAP_SET_CSS(n->bar.cap, 1);
+femu.c:457:    NVME_CAP_SET_CSS(n->bar.cap, NVME_CAP_CSS_CSI_SUPP);
+femu.c:458:    NVME_CAP_SET_CSS(n->bar.cap, NVME_CAP_CSS_ADMIN_ONLY);
+femu.c:460:    NVME_CAP_SET_MPSMIN(n->bar.cap, n->mpsmin);
+femu.c:461:    NVME_CAP_SET_MPSMAX(n->bar.cap, n->mpsmax);
+femu.c:463:    n->bar.vs = NVME_SPEC_VER;
+femu.c:464:    n->bar.intmc = n->bar.intms = 0;
+femu.c:465:    n->temperature = NVME_TEMPERATURE;
+femu.c:470:    n->bar.cmbloc = n->cmbloc;
+femu.c:471:    n->bar.cmbsz  = n->cmbsz;
+femu.c:473:    n->cmbuf = g_malloc0(NVME_CMBSZ_GETSIZE(n->bar.cmbsz));
+femu.c:474:    memory_region_init_io(&n->ctrl_mem, OBJECT(n), &nvme_cmb_ops, n, "nvme-cmb",
+femu.c:475:                          NVME_CMBSZ_GETSIZE(n->bar.cmbsz));
+femu.c:476:    pci_register_bar(&n->parent_obj, NVME_CMBLOC_BIR(n->bar.cmbloc),
+femu.c:478:                     PCI_BASE_ADDRESS_MEM_TYPE_64, &n->ctrl_mem);
+femu.c:483:    uint8_t *pci_conf = n->parent_obj.config;
+femu.c:488:    pci_config_set_vendor_id(pci_conf, n->vid);
+femu.c:489:    pci_config_set_device_id(pci_conf, n->did);
+femu.c:491:    pcie_endpoint_cap_init(&n->parent_obj, 0x80);
+femu.c:493:    memory_region_init_io(&n->iomem, OBJECT(n), &nvme_mmio_ops, n, "nvme",
+femu.c:494:                          n->reg_size);
+femu.c:495:    pci_register_bar(&n->parent_obj, 0, PCI_BASE_ADDRESS_SPACE_MEMORY |
+femu.c:496:                     PCI_BASE_ADDRESS_MEM_TYPE_64, &n->iomem);
+femu.c:497:    if (msix_init_exclusive_bar(&n->parent_obj, n->nr_io_queues + 1, 4, NULL)) {
+femu.c:500:    msi_init(&n->parent_obj, 0x50, 32, true, false, NULL);
+femu.c:502:    if (n->cmbsz) {
+femu.c:510:        switch (n->lver) {
+femu.c:544:    bs_size = ((int64_t)n->memsz) * 1024 * 1024;
+femu.c:546:    init_dram_backend(&n->mbe, bs_size);
+femu.c:547:    n->mbe->femu_mode = n->femu_mode;
+femu.c:549:    n->completed = 0;
+femu.c:550:    n->start_time = time(NULL);
+femu.c:551:    n->reg_size = pow2ceil(0x1004 + 2 * (n->nr_io_queues + 1) * 4);
+femu.c:552:    n->ns_size = bs_size / (uint64_t)n->num_namespaces;
+femu.c:555:    n->sq = g_malloc0(sizeof(*n->sq) * (n->nr_io_queues + 1));
+femu.c:556:    n->cq = g_malloc0(sizeof(*n->cq) * (n->nr_io_queues + 1));
+femu.c:557:    n->namespaces = g_malloc0(sizeof(*n->namespaces) * n->num_namespaces);
+femu.c:558:    n->elpes = g_malloc0(sizeof(*n->elpes) * (n->elpe + 1));
+femu.c:559:    n->aer_reqs = g_malloc0(sizeof(*n->aer_reqs) * (n->aerl + 1));
+femu.c:560:    n->features.int_vector_config = g_malloc0(sizeof(*n->features.int_vector_config) * (n->nr_io_queues + 1));
+femu.c:561:    n->str_param = g_malloc0(sizeof(NvmeDirStrParam));
+femu.c:569:    if (n->ext_ops.init) {
+femu.c:570:        n->ext_ops.init(n, errp);
+femu.c:574:    n->ssd->ByteWrittenHost = 0;
+femu.c:575:    n->ssd->ByteWrittenGC = 0;
+femu.c:582:    uint64_t host = n->ssd->ByteWrittenHost;
+femu.c:583:    uint64_t gc = n->ssd->ByteWrittenGC;
+femu.c:606:    for (i = 1; i <= n->nr_pollers; i++) {
+femu.c:607:        qemu_thread_join(&n->poller[i]);
+femu.c:610:    for (i = 1; i <= n->nr_pollers; i++) {
+femu.c:611:        pqueue_free(n->pq[i]);
+femu.c:612:        femu_ring_free(n->to_poller[i]);
+femu.c:613:        femu_ring_free(n->to_ftl[i]);
+femu.c:616:    g_free(n->should_isr);
+femu.c:625:    if (n->ext_ops.exit) {
+femu.c:626:        n->ext_ops.exit(n);
+femu.c:631:    free_dram_backend(n->mbe);
+femu.c:633:    g_free(n->namespaces);
+femu.c:634:    g_free(n->features.int_vector_config);
+femu.c:635:    g_free(n->aer_reqs);
+femu.c:636:    g_free(n->elpes);
+femu.c:637:    g_free(n->cq);
+femu.c:638:    g_free(n->sq);
+femu.c:640:    memory_region_unref(&n->iomem);
+femu.c:641:    if (n->cmbsz) {
+femu.c:642:        memory_region_unref(&n->ctrl_mem);
+femu.c:732:    dc->desc = "FEMU Non-Volatile Memory Express";
+nvme-util.c:5:    return sqid <= n->nr_io_queues && n->sq[sqid] != NULL ? 0 : -1;
+nvme-util.c:10:    return cqid <= n->nr_io_queues && n->cq[cqid] != NULL ? 0 : -1;
+nvme-util.c:66:    uint16_t prps_per_page = n->page_size >> 3;
+nvme-util.c:68:    uint16_t total_prps = DIV_ROUND_UP(queue_depth * entry_size, n->page_size);
+nvme-util.c:74:            if (!prp_addr || prp_addr & (n->page_size - 1)) {
+nvme-util.c:82:        if (!prp_list[i] || prp_list[i] & (n->page_size - 1)) {
+nvme-util.c:96:    elp = &n->elpes[n->elp_index];
+nvme-util.c:97:    elp->error_count = n->error_count++;
+nvme-util.c:104:    n->elp_index = (n->elp_index + 1) % n->elpe;
+nvme-util.c:105:    ++n->num_errors;
+nvme-util.c:119:    if (n->id_ctrl.mdts && data_size > n->page_size * (1 << n->id_ctrl.mdts)) {
+nvme-util.c:149:    n->sq[sq->sqid] = NULL;
+nvme-util.c:163:    uint8_t stride = n->db_stride;
+nvme-util.c:165:    AddressSpace *as = pci_get_address_space(&n->parent_obj);
+nvme-util.c:179:        sq->prp_list = nvme_setup_discontig(n, dma_addr, size, n->sqe_size);
+nvme-util.c:195:        sq->arb_burst = (1 << NVME_ARB_AB(n->features.arbitration));
+nvme-util.c:198:        sq->arb_burst = NVME_ARB_HPW(n->features.arbitration) + 1;
+nvme-util.c:201:        sq->arb_burst = NVME_ARB_MPW(n->features.arbitration) + 1;
+nvme-util.c:205:        sq->arb_burst = NVME_ARB_LPW(n->features.arbitration) + 1;
+nvme-util.c:209:    if (sqid && n->dbs_addr && n->eis_addr) {
+nvme-util.c:210:        sq->db_addr = n->dbs_addr + 2 * sqid * dbbuf_entry_sz;
+nvme-util.c:211:        sq->db_addr_hva = n->dbs_addr_hva + 2 * sqid * dbbuf_entry_sz;
+nvme-util.c:212:        sq->eventidx_addr = n->eis_addr + 2 * sqid * dbbuf_entry_sz;
+nvme-util.c:213:        sq->eventidx_addr = n->eis_addr_hva + 2 * sqid + dbbuf_entry_sz;
+nvme-util.c:218:    assert(n->cq[cqid]);
+nvme-util.c:219:    cq = n->cq[cqid];
+nvme-util.c:221:    n->sq[sqid] = sq;
+nvme-util.c:239:    uint8_t stride = n->db_stride;
+nvme-util.c:241:    AddressSpace *as = pci_get_address_space(&n->parent_obj);
+nvme-util.c:248:        cq->prp_list = nvme_setup_discontig(n, dma_addr, size, n->cqe_size);
+nvme-util.c:256:    if (cqid && n->dbs_addr && n->eis_addr) {
+nvme-util.c:257:        cq->db_addr = n->dbs_addr + (2 * cqid + 1) * dbbuf_entry_sz;
+nvme-util.c:258:        cq->db_addr_hva = n->dbs_addr_hva + (2 * cqid + 1) * dbbuf_entry_sz;
+nvme-util.c:259:        cq->eventidx_addr = n->eis_addr + (2 * cqid + 1) * dbbuf_entry_sz;
+nvme-util.c:260:        cq->eventidx_addr_hva = n->eis_addr_hva + (2 * cqid + 1) * dbbuf_entry_sz;
+nvme-util.c:264:    msix_vector_use(&n->parent_obj, cq->vector);
+nvme-util.c:265:    n->cq[cqid] = cq;
+nvme-util.c:272:    n->cq[cq->cqid] = NULL;
+nvme-util.c:273:    msix_vector_unuse(&n->parent_obj, cq->vector);
+nvme-util.c:284:    NvmeIdCtrl *id = &n->id_ctrl;
+nvme-util.c:297:    memset(n->devname, 0, MN_MAX_LEN);
+nvme-util.c:298:    g_strlcpy(n->devname, serial, sizeof(serial));
+zns/zns.h:246:    assert(n->nr_open_zones >= 0);
+zns/zns.h:247:    if (n->max_open_zones) {
+zns/zns.h:248:        n->nr_open_zones++;
+zns/zns.h:249:        assert(n->nr_open_zones <= n->max_open_zones);
+zns/zns.h:256:    if (n->max_open_zones) {
+zns/zns.h:257:        assert(n->nr_open_zones > 0);
+zns/zns.h:258:        n->nr_open_zones--;
+zns/zns.h:260:    assert(n->nr_open_zones >= 0);
+zns/zns.h:266:    assert(n->nr_active_zones >= 0);
+zns/zns.h:267:    if (n->max_active_zones) {
+zns/zns.h:268:        n->nr_active_zones++;
+zns/zns.h:269:        assert(n->nr_active_zones <= n->max_active_zones);
+zns/zns.h:276:    if (n->max_active_zones) {
+zns/zns.h:277:        assert(n->nr_active_zones > 0);
+zns/zns.h:278:        n->nr_active_zones--;
+zns/zns.h:279:        assert(n->nr_active_zones >= n->nr_open_zones);
+zns/zns.h:281:    assert(n->nr_active_zones >= 0);
+zns/zns.c:11:    return (n->zone_size_log2 > 0 ? slba >> n->zone_size_log2 : slba / n->zone_size);
+zns/zns.c:19:    assert(zone_idx < n->num_zones);
+zns/zns.c:20:    return &n->zone_array[zone_idx];
+zns/zns.c:29:    if (n->zone_size_bs) {
+zns/zns.c:30:        zone_size = n->zone_size_bs;
+zns/zns.c:35:    if (n->zone_cap_bs) {
+zns/zns.c:36:        zone_cap = n->zone_cap_bs;
+zns/zns.c:54:    n->zone_size = zone_size / lbasz;
+zns/zns.c:55:    n->zone_capacity = zone_cap / lbasz;
+zns/zns.c:56:    n->num_zones = ns->size / lbasz / n->zone_size;
+zns/zns.c:58:    if (n->max_open_zones > n->num_zones) {
+zns/zns.c:60:                 n->max_open_zones, n->num_zones);
+zns/zns.c:63:    if (n->max_active_zones > n->num_zones) {
+zns/zns.c:65:                 n->max_active_zones, n->num_zones);
+zns/zns.c:69:    if (n->zd_extension_size) {
+zns/zns.c:70:        if (n->zd_extension_size & 0x3f) {
+zns/zns.c:74:        if ((n->zd_extension_size >> 6) > 0xff) {
+zns/zns.c:86:    uint64_t start = 0, zone_size = n->zone_size;
+zns/zns.c:87:    uint64_t capacity = n->num_zones * zone_size;
+zns/zns.c:91:    n->zone_array = g_new0(NvmeZone, n->num_zones);
+zns/zns.c:92:    if (n->zd_extension_size) {
+zns/zns.c:93:        n->zd_extensions = g_malloc0(n->zd_extension_size * n->num_zones);
+zns/zns.c:96:    QTAILQ_INIT(&n->exp_open_zones);
+zns/zns.c:97:    QTAILQ_INIT(&n->imp_open_zones);
+zns/zns.c:98:    QTAILQ_INIT(&n->closed_zones);
+zns/zns.c:99:    QTAILQ_INIT(&n->full_zones);
+zns/zns.c:101:    zone = n->zone_array;
+zns/zns.c:102:    for (i = 0; i < n->num_zones; i++, zone++) {
+zns/zns.c:109:        zone->d.zcap = n->zone_capacity;
+zns/zns.c:116:    n->zone_size_log2 = 0;
+zns/zns.c:117:    if (is_power_of_2(n->zone_size)) {
+zns/zns.c:118:        n->zone_size_log2 = 63 - clz64(n->zone_size);
+zns/zns.c:131:    id_ns_z->mar = cpu_to_le32(n->max_active_zones - 1);
+zns/zns.c:132:    id_ns_z->mor = cpu_to_le32(n->max_open_zones - 1);
+zns/zns.c:134:    id_ns_z->ozcs = n->cross_zone_read ? 0x01 : 0x00;
+zns/zns.c:136:    id_ns_z->lbafe[lba_index].zsze = cpu_to_le64(n->zone_size);
+zns/zns.c:137:    id_ns_z->lbafe[lba_index].zdes = n->zd_extension_size >> 6; /* Units of 64B */
+zns/zns.c:139:    n->csi = NVME_CSI_ZONED;
+zns/zns.c:140:    ns->id_ns.nsze = cpu_to_le64(n->num_zones * n->zone_size);
+zns/zns.c:152:    if (n->zone_size % (ns->id_ns.npdg + 1)) {
+zns/zns.c:155:                 "support disabled", n->zone_size, ns->id_ns.npdg + 1);
+zns/zns.c:159:    n->id_ns_zoned = id_ns_z;
+zns/zns.c:174:        QTAILQ_INSERT_HEAD(&n->closed_zones, zone, entry);
+zns/zns.c:185:    QTAILQ_FOREACH_SAFE(zone, &n->closed_zones, entry, next) {
+zns/zns.c:186:        QTAILQ_REMOVE(&n->closed_zones, zone, entry);
+zns/zns.c:190:    QTAILQ_FOREACH_SAFE(zone, &n->imp_open_zones, entry, next) {
+zns/zns.c:191:        QTAILQ_REMOVE(&n->imp_open_zones, zone, entry);
+zns/zns.c:196:    QTAILQ_FOREACH_SAFE(zone, &n->exp_open_zones, entry, next) {
+zns/zns.c:197:        QTAILQ_REMOVE(&n->exp_open_zones, zone, entry);
+zns/zns.c:203:    assert(n->nr_open_zones == 0);
+zns/zns.c:209:    if (n->zoned) {
+zns/zns.c:217:    if (n->zoned) {
+zns/zns.c:218:        g_free(n->id_ns_zoned);
+zns/zns.c:219:        g_free(n->zone_array);
+zns/zns.c:220:        g_free(n->zd_extensions);
+zns/zns.c:231:            QTAILQ_REMOVE(&n->exp_open_zones, zone, entry);
+zns/zns.c:234:            QTAILQ_REMOVE(&n->imp_open_zones, zone, entry);
+zns/zns.c:237:            QTAILQ_REMOVE(&n->closed_zones, zone, entry);
+zns/zns.c:240:            QTAILQ_REMOVE(&n->full_zones, zone, entry);
+zns/zns.c:250:        QTAILQ_INSERT_TAIL(&n->exp_open_zones, zone, entry);
+zns/zns.c:253:        QTAILQ_INSERT_TAIL(&n->imp_open_zones, zone, entry);
+zns/zns.c:256:        QTAILQ_INSERT_TAIL(&n->closed_zones, zone, entry);
+zns/zns.c:259:        QTAILQ_INSERT_TAIL(&n->full_zones, zone, entry);
+zns/zns.c:274:    if (n->max_active_zones != 0 &&
+zns/zns.c:275:        n->nr_active_zones + act > n->max_active_zones) {
+zns/zns.c:278:    if (n->max_open_zones != 0 &&
+zns/zns.c:279:        n->nr_open_zones + opn > n->max_open_zones) {
+zns/zns.c:332:            if (zns_l2b(ns, nlb) > (n->page_size << n->zasl)) {
+zns/zns.c:378:        if (!n->cross_zone_read) {
+zns/zns.c:403:    if (n->max_open_zones &&
+zns/zns.c:404:        n->nr_open_zones == n->max_open_zones) {
+zns/zns.c:405:        zone = QTAILQ_FIRST(&n->imp_open_zones);
+zns/zns.c:408:            QTAILQ_REMOVE(&n->imp_open_zones, zone, entry);
+zns/zns.c:490:    return (zone_idx) * n->zone_size;
+zns/zns.c:500:    struct zns_ssd *zns = n->zns;
+zns/zns.c:529:	struct zns_ssd *zns = n->zns;
+zns/zns.c:548:    struct zns_ssd *zns = n->zns;
+zns/zns.c:556:    uint64_t read_delay = n->zns_params.zns_read;
+zns/zns.c:557:    uint64_t write_delay = n->zns_params.zns_write;
+zns/zns.c:641:    struct zns_ssd *zns = n->zns;
+zns/zns.c:844:            QTAILQ_FOREACH_SAFE(zone, &n->closed_zones, entry, next) {
+zns/zns.c:852:            QTAILQ_FOREACH_SAFE(zone, &n->imp_open_zones, entry, next) {
+zns/zns.c:860:            QTAILQ_FOREACH_SAFE(zone, &n->exp_open_zones, entry, next) {
+zns/zns.c:869:            QTAILQ_FOREACH_SAFE(zone, &n->full_zones, entry, next) {
+zns/zns.c:878:            for (i = 0; i < n->num_zones; i++, zone++) {
+zns/zns.c:895:    NvmeNamespace *ns = &n->namespaces[0];
+zns/zns.c:899:    if (!n->zoned) {
+zns/zns.c:910:    assert(*zone_idx < n->num_zones);
+zns/zns.c:944:    zone = &n->zone_array[zone_idx];
+zns/zns.c:986:        if (all || !n->zd_extension_size) {
+zns/zns.c:990:        status = dma_write_prp(n, (uint8_t *)zd_ext, n->zd_extension_size, prp1,
+zns/zns.c:1067:    if (zra == NVME_ZONE_REPORT_EXTENDED && !n->zd_extension_size) {
+zns/zns.c:1089:        zone_entry_sz += n->zd_extension_size;
+zns/zns.c:1095:    zone = &n->zone_array[zone_idx];
+zns/zns.c:1096:    for (; slba < capacity; slba += n->zone_size) {
+zns/zns.c:1108:    for (; zone_idx < n->num_zones && max_zones > 0; zone_idx++) {
+zns/zns.c:1109:        zone = &n->zone_array[zone_idx];
+zns/zns.c:1129:                           n->zd_extension_size);
+zns/zns.c:1131:                buf_p += n->zd_extension_size;
+zns/zns.c:1196:    assert(n->zoned);
+zns/zns.c:1237:        backend_rw(n->mbe, &req->qsg, &data_offset, req->is_write);
+zns/zns.c:1276:    assert(n->zoned);
+zns/zns.c:1299:    if (NVME_ERR_REC_DULBE(n->features.err_rec)) {
+zns/zns.c:1308:    backend_rw(n->mbe, &req->qsg, &data_offset, req->is_write);
+zns/zns.c:1349:    assert(n->zoned);
+zns/zns.c:1383:    backend_rw(n->mbe, &req->qsg, &data_offset, req->is_write);
+zns/zns.c:1444:    uint8_t *pci_conf = n->parent_obj.config;
+zns/zns.c:1482:    id_zns->num_ch = n->zns_params.zns_num_ch;
+zns/zns.c:1483:    id_zns->num_lun = n->zns_params.zns_num_lun;
+zns/zns.c:1491:    n->zns = id_zns;
+zns/zns.c:1496:    n->zoned = true;
+zns/zns.c:1497:    n->zasl_bs = NVME_DEFAULT_MAX_AZ_SIZE;
+zns/zns.c:1498:    n->zone_size_bs = NVME_DEFAULT_ZONE_SIZE;
+zns/zns.c:1499:    n->zone_cap_bs = 0;
+zns/zns.c:1500:    n->cross_zone_read = false;
+zns/zns.c:1501:    n->max_active_zones = 0;
+zns/zns.c:1502:    n->max_open_zones = 0;
+zns/zns.c:1503:    n->zd_extension_size = 0;
+zns/zns.c:1511:    assert(n->page_size == 4096);
+zns/zns.c:1513:    if (!n->zasl_bs) {
+zns/zns.c:1514:        n->zasl = n->mdts;
+zns/zns.c:1516:        if (n->zasl_bs < n->page_size) {
+zns/zns.c:1517:            femu_err("ZASL too small (%dB), must >= 1 page (4K)\n", n->zasl_bs);
+zns/zns.c:1520:        n->zasl = 31 - clz32(n->zasl_bs / n->page_size);
+zns/zns.c:1528:    NvmeNamespace *ns = &n->namespaces[0];
+zns/zns.c:1551:    n->ext_ops = (FemuExtCtrlOps) {
+nvme-admin.c:82:    sq = n->sq[qid];
+nvme-admin.c:86:        cq = n->cq[sq->cqid];
+nvme-admin.c:119:    if (!qsize || qsize > NVME_CAP_MQES(n->bar.cap)) {
+nvme-admin.c:122:    if (!prp1 || prp1 & (n->page_size - 1)) {
+nvme-admin.c:125:    if (!(NVME_SQ_FLAGS_PC(qflags)) && NVME_CAP_CQR(n->bar.cap)) {
+nvme-admin.c:156:    if (!qsize || qsize > NVME_CAP_MQES(n->bar.cap)) {
+nvme-admin.c:162:    if (vector > n->nr_io_queues) {
+nvme-admin.c:165:    if (!(NVME_CQ_FLAGS_PC(qflags)) && NVME_CAP_CQR(n->bar.cap)) {
+nvme-admin.c:169:    if (n->cq[cqid] != NULL) {
+nvme-admin.c:170:        nvme_free_cq(n->cq[cqid], n);
+nvme-admin.c:199:    cq = n->cq[qid];
+nvme-admin.c:240:    n->should_isr = g_malloc0(sizeof(bool) * (n->nr_io_queues + 1));
+nvme-admin.c:242:    n->nr_pollers = n->multipoller_enabled ? n->nr_io_queues : 1;
+nvme-admin.c:244:    n->to_ftl = g_malloc0(sizeof(struct rte_ring *) * (n->nr_pollers + 1));
+nvme-admin.c:245:    for (i = 1; i <= n->nr_pollers; i++) {
+nvme-admin.c:246:        n->to_ftl[i] = femu_ring_create(FEMU_RING_TYPE_MP_SC, FEMU_MAX_INF_REQS);
+nvme-admin.c:247:        if (!n->to_ftl[i]) {
+nvme-admin.c:248:            femu_err("Failed to create ring (n->to_ftl) ...\n");
+nvme-admin.c:251:        assert(rte_ring_empty(n->to_ftl[i]));
+nvme-admin.c:254:    n->to_poller = g_malloc0(sizeof(struct rte_ring *) * (n->nr_pollers + 1));
+nvme-admin.c:255:    for (i = 1; i <= n->nr_pollers; i++) {
+nvme-admin.c:256:        n->to_poller[i] = femu_ring_create(FEMU_RING_TYPE_MP_SC, FEMU_MAX_INF_REQS);
+nvme-admin.c:257:        if (!n->to_poller[i]) {
+nvme-admin.c:258:            femu_err("Failed to create ring (n->to_poller) ...\n");
+nvme-admin.c:261:        assert(rte_ring_empty(n->to_poller[i]));
+nvme-admin.c:264:    n->pq = g_malloc0(sizeof(pqueue_t *) * (n->nr_pollers + 1));
+nvme-admin.c:265:    for (i = 1; i <= n->nr_pollers; i++) {
+nvme-admin.c:266:        n->pq[i] = pqueue_init(FEMU_MAX_INF_REQS, cmp_pri, get_pri, set_pri,
+nvme-admin.c:268:        if (!n->pq[i]) {
+nvme-admin.c:269:            femu_err("Failed to create pqueue (n->pq) ...\n");
+nvme-admin.c:274:    n->poller = g_malloc0(sizeof(QemuThread) * (n->nr_pollers + 1));
+nvme-admin.c:276:                                            (n->nr_pollers + 1));
+nvme-admin.c:277:    for (i = 1; i <= n->nr_pollers; i++) {
+nvme-admin.c:280:        qemu_thread_create(&n->poller[i], "femu-nvme-poller", nvme_poller,
+nvme-admin.c:290:    uint8_t stride = n->db_stride;
+nvme-admin.c:292:    AddressSpace *as = pci_get_address_space(&n->parent_obj);
+nvme-admin.c:296:    dma_addr_t dbs_tlen = n->page_size, eis_tlen = n->page_size;
+nvme-admin.c:299:    if (dbs_addr == 0 || dbs_addr & (n->page_size - 1) || eis_addr == 0 ||
+nvme-admin.c:300:            eis_addr & (n->page_size - 1)) {
+nvme-admin.c:304:    n->dbs_addr = dbs_addr;
+nvme-admin.c:305:    n->eis_addr = eis_addr;
+nvme-admin.c:306:    n->dbs_addr_hva = (uint64_t)dma_memory_map(as, dbs_addr, &dbs_tlen, 0, MEMTXATTRS_UNSPECIFIED);
+nvme-admin.c:307:    n->eis_addr_hva = (uint64_t)dma_memory_map(as, eis_addr, &eis_tlen, 0, MEMTXATTRS_UNSPECIFIED);
+nvme-admin.c:309:    for (i = 1; i <= n->nr_io_queues; i++) {
+nvme-admin.c:310:        NvmeSQueue *sq = n->sq[i];
+nvme-admin.c:311:        NvmeCQueue *cq = n->cq[i];
+nvme-admin.c:316:            sq->db_addr_hva = n->dbs_addr_hva + 2 * i * dbbuf_entry_sz;
+nvme-admin.c:318:            sq->eventidx_addr_hva = n->eis_addr_hva + 2 * i * dbbuf_entry_sz;
+nvme-admin.c:325:            cq->db_addr_hva = n->dbs_addr_hva + (2 * i + 1) * dbbuf_entry_sz;
+nvme-admin.c:327:            cq->eventidx_addr_hva = n->eis_addr_hva + (2 * i + 1) * dbbuf_entry_sz;
+nvme-admin.c:333:    assert(n->dataplane_started == false);
+nvme-admin.c:334:    if (!n->poller_on) {
+nvme-admin.c:337:        n->poller_on = true;
+nvme-admin.c:339:    n->dataplane_started = true;
+nvme-admin.c:347:    return nsid && (nsid == NVME_NSID_BROADCAST || nsid <= n->num_namespaces);
+nvme-admin.c:352:    if (!nsid || nsid > n->num_namespaces) {
+nvme-admin.c:356:    return &n->namespaces[nsid - 1];
+nvme-admin.c:371:    switch (n->csi) {
+nvme-admin.c:412:    int pgsz = n->page_size;
+nvme-admin.c:425:    } else if (c->csi == NVME_CSI_ZONED && n->csi == NVME_CSI_ZONED) {
+nvme-admin.c:426:        return dma_read_prp(n, (uint8_t *)n->id_ns_zoned, pgsz, prp1, prp2);
+nvme-admin.c:437:    return dma_read_prp(n, (uint8_t *)&n->id_ctrl, sizeof(n->id_ctrl),
+nvme-admin.c:457:        if (n->zasl_bs) {
+nvme-admin.c:458:            id.zasl = n->zasl;
+nvme-admin.c:488:    for (i = 1; i <= n->num_namespaces; i++) {
+nvme-admin.c:525:    for (i = 1; i <= n->num_namespaces; i++) {
+nvme-admin.c:530:        if (ns->id <= min_nsid || c->csi != n->csi) {
+nvme-admin.c:575:    memcpy(&ns_descrs->uuid.v, n->uuid.data, NVME_NIDL_UUID);
+nvme-admin.c:579:    ns_descrs->csi.v = n->csi;
+nvme-admin.c:639:        cqe->n.result = cpu_to_le32(n->features.arbitration);
+nvme-admin.c:642:        cqe->n.result = cpu_to_le32(n->features.power_mgmt);
+nvme-admin.c:645:        if (nsid == 0 || nsid > n->num_namespaces) {
+nvme-admin.c:648:        rt = n->namespaces[nsid - 1].lba_range;
+nvme-admin.c:653:        cqe->n.result = cpu_to_le32((n->nr_io_queues - 1) |
+nvme-admin.c:654:                ((n->nr_io_queues - 1) << 16));
+nvme-admin.c:657:        cqe->n.result = cpu_to_le32(n->features.temp_thresh);
+nvme-admin.c:660:        cqe->n.result = cpu_to_le32(n->features.err_rec);
+nvme-admin.c:663:        cqe->n.result = cpu_to_le32(n->features.volatile_wc);
+nvme-admin.c:666:        cqe->n.result = cpu_to_le32(n->features.int_coalescing);
+nvme-admin.c:669:        if ((dw11 & 0xffff) > n->nr_io_queues) {
+nvme-admin.c:672:        cqe->n.result = cpu_to_le32(n->features.int_vector_config[dw11 & 0xffff]);
+nvme-admin.c:675:        cqe->n.result = cpu_to_le32(n->features.write_atomicity);
+nvme-admin.c:678:        cqe->n.result = cpu_to_le32(n->features.async_config);
+nvme-admin.c:681:        cqe->n.result = cpu_to_le32(n->features.sw_prog_marker);
+nvme-admin.c:701:        cqe->n.result = cpu_to_le32(n->features.arbitration);
+nvme-admin.c:702:        n->features.arbitration = dw11;
+nvme-admin.c:705:        n->features.power_mgmt = dw11;
+nvme-admin.c:708:        if (nsid == 0 || nsid > n->num_namespaces) {
+nvme-admin.c:711:        rt = n->namespaces[nsid - 1].lba_range;
+nvme-admin.c:717:        cqe->n.result = cpu_to_le32((n->nr_io_queues - 1) |
+nvme-admin.c:718:                ((n->nr_io_queues - 1) << 16));
+nvme-admin.c:721:        n->features.temp_thresh = dw11;
+nvme-admin.c:722:        if (n->features.temp_thresh <= n->temperature && !n->temp_warn_issued) {
+nvme-admin.c:723:            n->temp_warn_issued = 1;
+nvme-admin.c:724:        } else if (n->features.temp_thresh > n->temperature &&
+nvme-admin.c:725:                !(n->aer_mask & 1 << NVME_AER_TYPE_SMART)) {
+nvme-admin.c:726:            n->temp_warn_issued = 0;
+nvme-admin.c:730:        n->features.err_rec = dw11;
+nvme-admin.c:733:        n->features.volatile_wc = dw11;
+nvme-admin.c:736:        n->features.int_coalescing = dw11;
+nvme-admin.c:739:        if ((dw11 & 0xffff) > n->nr_io_queues) {
+nvme-admin.c:742:        n->features.int_vector_config[dw11 & 0xffff] = dw11 & 0x1ffff;
+nvme-admin.c:745:        n->features.write_atomicity = dw11;
+nvme-admin.c:748:        n->features.async_config = dw11;
+nvme-admin.c:751:        n->features.sw_prog_marker = dw11;
+nvme-admin.c:778:    trans_len = MIN(sizeof(*n->elpes) * n->elpe, buf_len);
+nvme-admin.c:779:    n->aer_mask &= ~(1 << NVME_AER_TYPE_ERROR);
+nvme-admin.c:781:    return dma_read_prp(n, (uint8_t *)n->elpes, trans_len, prp1, prp2);
+nvme-admin.c:800:    smart.number_of_error_log_entries[0] = cpu_to_le64(n->num_errors);
+nvme-admin.c:801:    smart.temperature[0] = n->temperature & 0xff;
+nvme-admin.c:802:    smart.temperature[1] = (n->temperature >> 8) & 0xff;
+nvme-admin.c:806:        ((current_seconds - n->start_time) / 60) / 60);
+nvme-admin.c:812:    if (n->features.temp_thresh <= n->temperature) {
+nvme-admin.c:816:    n->aer_mask &= ~(1 << NVME_AER_TYPE_SMART);
+nvme-admin.c:834:    switch (NVME_CC_CSS(n->bar.cc)) {
+nvme-admin.c:901:        if (n->ext_ops.get_log) {
+nvme-admin.c:902:            return n->ext_ops.get_log(n, cmd);
+nvme-admin.c:925:    sq = n->sq[sqid];
+nvme-admin.c:933:                n->sqe_size;
+nvme-admin.c:936:                n->page_size, n->sqe_size);
+nvme-admin.c:1015:        for (uint32_t i = 0; i < n->num_namespaces; ++i) {
+nvme-admin.c:1016:            ns = &n->namespaces[i];
+nvme-admin.c:1026:    if (nsid == 0 || nsid > n->num_namespaces) {
+nvme-admin.c:1030:    ns = &n->namespaces[nsid - 1];
+nvme-admin.c:1051:                n->str_param->msl = 100;
+nvme-admin.c:1052:                n->str_param->nssa = 6;
+nvme-admin.c:1053:                n->str_param->nsa = 6;
+nvme-admin.c:1054:                if (((numd + 1) * 4) < sizeof(*(n->str_param))) {
+nvme-admin.c:1055:                    return dma_read_prp(n, (uint8_t *)n->str_param, (numd + 1) * 4, prp1, prp2);
+nvme-admin.c:1058:                    return dma_read_prp(n, (uint8_t *)n->str_param,
+nvme-admin.c:1059:                                sizeof(*(n->str_param)), prp1, prp2);
+nvme-admin.c:1076:        n->upg_rd_lat_ns = le64_to_cpu(cmd->cdw10);
+nvme-admin.c:1077:        n->lpg_rd_lat_ns = le64_to_cpu(cmd->cdw11);
+nvme-admin.c:1078:        n->upg_wr_lat_ns = le64_to_cpu(cmd->cdw12);
+nvme-admin.c:1079:        n->lpg_wr_lat_ns = le64_to_cpu(cmd->cdw13);
+nvme-admin.c:1080:        n->blk_er_lat_ns = le64_to_cpu(cmd->cdw14);
+nvme-admin.c:1081:        n->chnl_pg_xfer_lat_ns = le64_to_cpu(cmd->cdw15);
+nvme-admin.c:1084:                n->upg_rd_lat_ns, n->lpg_rd_lat_ns, n->upg_wr_lat_ns,
+nvme-admin.c:1085:                n->lpg_wr_lat_ns, n->blk_er_lat_ns, n->chnl_pg_xfer_lat_ns);
+nvme-admin.c:1116:        if (NVME_OACS_FORMAT & n->oacs) {
+nvme-admin.c:1129:        if (NVME_OACS_DIRECTIVES & n->id_ctrl.oacs) {
+nvme-admin.c:1134:        if (NVME_OACS_DIRECTIVES & n->id_ctrl.oacs) {
+nvme-admin.c:1139:        if (n->ext_ops.admin_cmd) {
+nvme-admin.c:1140:            return n->ext_ops.admin_cmd(n, cmd);
+nvme-admin.c:1151:    NvmeCQueue *cq = n->cq[sq->cqid];
+nvme-admin.c:1160:            addr = sq->dma_addr + sq->head * n->sqe_size;
+nvme-admin.c:1162:            addr = nvme_discontig(sq->prp_list, sq->head, n->page_size,
+nvme-admin.c:1163:                    n->sqe_size);
+nvme-admin.c:1177:            addr = cq->dma_addr + cq->tail * n->cqe_size;
+nvme-admin.c:1179:            addr = nvme_discontig(cq->prp_list, cq->tail, n->page_size, n->cqe_size);
+dma.c:5:    if (n->cmbsz && addr >= n->ctrl_mem.addr &&
+dma.c:6:        addr < (n->ctrl_mem.addr + int128_get64(n->ctrl_mem.size))) {
+dma.c:7:        memcpy(buf, (void *)&n->cmbuf[addr - n->ctrl_mem.addr], size);
+dma.c:9:        pci_dma_read(&n->parent_obj, addr, buf, size);
+dma.c:15:    if (n->cmbsz && addr >= n->ctrl_mem.addr &&
+dma.c:16:        addr < (n->ctrl_mem.addr + int128_get64(n->ctrl_mem.size))) {
+dma.c:17:        memcpy((void *)&n->cmbuf[addr - n->ctrl_mem.addr], buf, size);
+dma.c:19:        pci_dma_write(&n->parent_obj, addr, buf, size);
+dma.c:26:    hwaddr trans_len = n->page_size - (prp1 % n->page_size);
+dma.c:28:    int num_prps = (len >> n->page_bits) + 1;
+dma.c:33:    } else if (n->cmbsz && prp1 >= n->ctrl_mem.addr &&
+dma.c:34:               prp1 < n->ctrl_mem.addr + int128_get64(n->ctrl_mem.size)) {
+dma.c:38:        qemu_iovec_add(iov, (void *)&n->cmbuf[prp1-n->ctrl_mem.addr], trans_len);
+dma.c:40:        pci_dma_sglist_init(qsg, &n->parent_obj, num_prps);
+dma.c:49:        if (len > n->page_size) {
+dma.c:50:            uint64_t prp_list[n->max_prp_ents];
+dma.c:54:            nents = (len + n->page_size - 1) >> n->page_bits;
+dma.c:55:            prp_trans = MIN(n->max_prp_ents, nents) * sizeof(uint64_t);
+dma.c:60:                if (i == n->max_prp_ents - 1 && len > n->page_size) {
+dma.c:61:                    if (!prp_ent || prp_ent & (n->page_size - 1)) {
+dma.c:66:                    nents = (len + n->page_size - 1) >> n->page_bits;
+dma.c:67:                    prp_trans = MIN(n->max_prp_ents, nents) * sizeof(uint64_t);
+dma.c:73:                if (!prp_ent || prp_ent & (n->page_size - 1)) {
+dma.c:77:                trans_len = MIN(len, n->page_size);
+dma.c:81:                    uint64_t off = prp_ent - n->ctrl_mem.addr;
+dma.c:82:                    qemu_iovec_add(iov, (void *)&n->cmbuf[off], trans_len);
+dma.c:88:            if (prp2 & (n->page_size - 1)) {
+dma.c:94:                uint64_t off = prp2 - n->ctrl_mem.addr;
+dma.c:95:                qemu_iovec_add(iov, (void *)&n->cmbuf[off], trans_len);
+nvme.h:1439:    return (n->femu_mode == FEMU_OCSSD_MODE);
+nvme.h:1444:    return (n->femu_mode == FEMU_BBSSD_MODE);
+nvme.h:1449:    return (n->femu_mode == FEMU_NOSSD_MODE);
+nvme.h:1454:    return (n->femu_mode == FEMU_ZNSSD_MODE);
+nvme.h:1521:    uint64_t ns_size = n->ns_size;
+nvme.h:1524:    uint32_t lba_sz = lba_ds + n->meta;
+nvme.h:1541:    uint8_t mdts = n->mdts;
+nvme.h:1543:    if (mdts && len > n->page_size << mdts) {
+inc/rte_ring.h:594: *   if non-NULL, returns the amount of space in the ring after the
+inc/rte_ring.h:617: *   if non-NULL, returns the amount of space in the ring after the
+inc/rte_ring.h:644: *   if non-NULL, returns the amount of space in the ring after the
+inc/rte_ring.h:728: *   If non-NULL, returns the number of remaining ring entries after the
+inc/rte_ring.h:752: *   If non-NULL, returns the number of remaining ring entries after the
+inc/rte_ring.h:779: *   If non-NULL, returns the number of remaining ring entries after the
+inc/rte_ring.h:977: *   if non-NULL, returns the amount of space in the ring after the
+inc/rte_ring.h:1000: *   if non-NULL, returns the amount of space in the ring after the
+inc/rte_ring.h:1027: *   if non-NULL, returns the amount of space in the ring after the
+inc/rte_ring.h:1055: *   If non-NULL, returns the number of remaining ring entries after the
+inc/rte_ring.h:1080: *   If non-NULL, returns the number of remaining ring entries after the
+inc/rte_ring.h:1107: *   If non-NULL, returns the number of remaining ring entries after the
+inc/pqueue.h:73: *     This callback should return 0 for 'lower' and non-zero
+nossd/nop.c:31:    n->ext_ops = (FemuExtCtrlOps) {

@@ -1,0 +1,10 @@
+[options]
+kvm = enabled
+slirp = enabled
+werror = true
+vfio_user_server = disabled
+prefix = /usr/local
+
+[properties]
+native_file = ['/FEMU/femu-scripts/config-meson.cross']
+

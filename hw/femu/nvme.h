@@ -672,6 +672,7 @@ enum LogIdentifier {
     NVME_LOG_SMART_INFO     = 0x02,
     NVME_LOG_FW_SLOT_INFO   = 0x03,
     NVME_LOG_CMD_EFFECTS    = 0x05,
+    NVME_LOG_WAF	    = 0x17,
 };
 
 typedef struct NvmePSD {
@@ -1391,6 +1392,15 @@ typedef struct FemuCtrl {
 
     /* Nand Flash Type: SLC/MLC/TLC/QLC/PLC */
     uint8_t         flash_type;
+
+    uint64_t	    ByteWrittenHost;
+    uint64_t	    ByteWrittenGC;
+	uint64_t		ByteWrittenMap;
+	uint64_t		ByteWrittenMapGC;
+    uint64_t	    WAF;
+
+	uint64_t		CmtHit;
+	uint64_t		CmtMiss;
 } FemuCtrl;
 
 typedef struct NvmePollerThreadArgument {
@@ -1539,6 +1549,10 @@ static inline uint16_t nvme_check_mdts(FemuCtrl *n, size_t len)
 
     return NVME_SUCCESS;
 }
+
+//Begin=====================================================================
+uint64_t nvme_write_amplification(FemuCtrl *n, NvmeCmd *cmd);
+//End(0) 23.11.03 18:33=====================================================
 
 #define MN_MAX_LEN (64)
 #define ID_MAX_LEN (4)

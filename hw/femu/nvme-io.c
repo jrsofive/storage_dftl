@@ -192,6 +192,7 @@ static void nvme_process_cq_cpl(void *arg, int index_poller)
 
 void *nvme_poller(void *arg)
 {
+    //fprintf(stderr, "run nvme_poller\n");
     FemuCtrl *n = ((NvmePollerThreadArgument *)arg)->n;
     int index = ((NvmePollerThreadArgument *)arg)->index;
     int i;

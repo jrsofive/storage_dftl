@@ -569,7 +569,43 @@ static void femu_realize(PCIDevice *pci_dev, Error **errp)
     if (n->ext_ops.init) {
         n->ext_ops.init(n, errp);
     }
+
+    //Begin(0)========================================
+    n->ByteWrittenHost = 0;
+    n->ByteWrittenGC = 0;
+    n->WAF = 0;
+    //End(0) 2023.11.03 15:30=========================
 }
+
+//Begin(0)
+uint64_t nvme_write_amplification(FemuCtrl *n, NvmeCmd *cmd)
+{
+    uint64_t host, gc, map, mapgc, waf;
+    host = n->ByteWrittenHost;
+    gc = n->ByteWrittenGC;
+	map = n->ByteWrittenMap;
+	mapgc = n->ByteWrittenMapGC;
+
+	uint64_t hit, miss;
+	hit = n->CmtHit;
+	miss = n->CmtMiss;
+
+    if(host)
+		waf = (host + gc + map + mapgc) * 100 / host;
+    else
+	waf = 0;
+
+    n->WAF = waf;    
+
+    uint64_t prp1 = le64_to_cpu(cmd->dptr.prp1);
+    uint64_t prp2 = le64_to_cpu(cmd->dptr.prp2);
+
+    fprintf(stderr, "nvme_write_amplification %lu %lu %lu %lu -> %lu\n", host, gc, map, mapgc, waf);	//will be deleted
+	fprintf(stderr, "cache hit, miss %lu %lu\n", hit, miss);
+
+    return dma_read_prp(n, (uint8_t*) &(n->WAF), sizeof(n->WAF), prp1, prp2);
+}
+//End(0) -2023.11.01 00:24
 
 static void nvme_destroy_poller(FemuCtrl *n)
 {

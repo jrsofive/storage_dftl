@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 [![FEMU Version](https://img.shields.io/badge/FEMU-v7.0-brightgreen)](https://img.shields.io/badge/FEMU-v7.0-brightgreen)
 [![Build Status](https://travis-ci.com/vtess/FEMU.svg?branch=master)](https://travis-ci.com/vtess/FEMU)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
@@ -315,3 +316,6 @@ FEMU's NVMe controller logic is based on QEMU/NVMe, LightNVM/QEMU and ZNS/QEMU.
 
 ### For more detail, please checkout the [Wiki](https://github.com/vtess/femu/wiki)!
 
+=======
+# storage_dftl
+>>>>>>> 9e76e5e05696076ae5ced4b7fbd9803be84d6cae
