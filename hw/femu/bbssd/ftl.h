@@ -261,9 +261,9 @@ void ssd_init(FemuCtrl *n);
 uint64_t trnsl_page_write(struct ssd *ssd, uint64_t mvpn);
 void cmt_append(struct ssd *ssd, uint64_t lpn);
 bool cmt_find(struct ssd *ssd, uint64_t lpn);
-void cmt_evict(struct ssd *ssd);
+uint64_t cmt_evict(struct ssd *ssd);
 void cmt_dirty(struct ssd *ssd, uint64_t lpn);
-void cmt_oper(struct ssd *ssd, uint64_t lpn);
+uint64_t cmt_oper(struct ssd *ssd, uint64_t lpn);
 
 //static struct ppa get_new_trnsl_page(struct ssd *ssd);
 //static void ssd_advance_trnsl_write_pointer(struct ssd *ssd);
