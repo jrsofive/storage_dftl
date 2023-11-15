@@ -7,22 +7,11 @@ static void *ftl_thread(void *arg);
 static inline bool should_gc(struct ssd *ssd)
 {
     return (ssd->lm.free_line_cnt <= ssd->sp.gc_thres_lines);
-    
-	//when dftl
-	//return (ssd->lm.free_line_cnt <= ssd->sp.gc_thres_lines - ssd->lm.trnsl_line_cnt);
 }
 
 static inline bool should_gc_high(struct ssd *ssd)
 {
     return (ssd->lm.free_line_cnt <= ssd->sp.gc_thres_lines_high);
-    
-	//when dftl
-	//return (ssd->lm.free_line_cnt <= ssd->sp.gc_thres_lines_high - ssd->lm.trnsl_line_cnt);
-}
-
-static inline bool should_map_gc(struct ssd *ssd)
-{
-	return ssd->lm.free_trnsl_line_cnt <= ssd->sp.trnsl_gc_thres_lines;
 }
 
 static inline struct ppa get_maptbl_ent(struct ssd *ssd, uint64_t lpn)
@@ -108,13 +97,7 @@ static void ssd_init_lines(struct ssd *ssd)
             victim_line_get_pos, victim_line_set_pos);
     QTAILQ_INIT(&lm->full_line_list);
 
-    QTAILQ_INIT(&lm->free_trnsl_line_list);
-    lm->victim_trnsl_line_pq = pqueue_init(spp->tt_lines, victim_line_cmp_pri,
-            victim_line_get_pri, victim_line_set_pri,
-            victim_line_get_pos, victim_line_set_pos);
-    QTAILQ_INIT(&lm->full_trnsl_line_list);
-    
-	lm->free_line_cnt = 0;
+    lm->free_line_cnt = 0;
     for (int i = 0; i < lm->tt_lines; i++) {
         line = &lm->lines[i];
         line->id = i;
@@ -122,22 +105,13 @@ static void ssd_init_lines(struct ssd *ssd)
         line->vpc = 0;
         line->pos = 0;
         /* initialize all the lines as free lines */
-        if(i <= lm->tt_lines * DATA_PER_TT) {
-			QTAILQ_INSERT_TAIL(&lm->free_line_list, line, entry);
-        	lm->free_line_cnt++;
-			lm->free_data_line_cnt++;
-		}
-		else {
-        	QTAILQ_INSERT_TAIL(&lm->free_trnsl_line_list, line, entry);
-        	lm->free_trnsl_line_cnt++;
-		}
+        QTAILQ_INSERT_TAIL(&lm->free_line_list, line, entry);
+        lm->free_line_cnt++;
     }
 
     ftl_assert(lm->free_line_cnt == lm->tt_lines);
     lm->victim_line_cnt = 0;
     lm->full_line_cnt = 0;
-	lm->victim_trnsl_line_cnt = 0;
-	lm->full_trnsl_line_cnt = 0;
 }
 
 static void ssd_init_write_pointer(struct ssd *ssd)
@@ -156,20 +130,6 @@ static void ssd_init_write_pointer(struct ssd *ssd)
     wpp->lun = 0;
     wpp->pg = 0;
     wpp->blk = 0;
-    wpp->pl = 0;
-
-	wpp = &ssd->wp_t;
-		
-    curline = QTAILQ_FIRST(&lm->free_line_list);
-    QTAILQ_REMOVE(&lm->free_trnsl_line_list, curline, entry);
-    lm->free_trnsl_line_cnt--;
-
-    /* wpp->curline is always our next-to-write super-block */
-    wpp->curline = curline;
-    wpp->ch = 0;
-    wpp->lun = 0;
-    wpp->pg = 0;
-    wpp->blk = (int)(ssd->wp.tt_lines * DATA_PER_TT) + 1;
     wpp->pl = 0;
 }
 
@@ -191,25 +151,6 @@ static struct line *get_next_free_line(struct ssd *ssd)
 
     QTAILQ_REMOVE(&lm->free_line_list, curline, entry);
     lm->free_line_cnt--;
-    
-    //fprintf(stderr, "get_next_free_line free_line_cnt %d\n", lm->free_line_cnt);
-
-    return curline;
-}
-
-static struct line *get_next_free_trnsl_line(struct ssd *ssd)
-{
-    struct line_mgmt *lm = &ssd->lm;
-    struct line *curline = NULL;
-
-    curline = QTAILQ_FIRST(&lm->free_trnsl_line_list);
-    if (!curline) {
-        ftl_err("No free lines left in [%s] !!!!\n", ssd->ssdname);
-        return NULL;
-    }
-
-    QTAILQ_REMOVE(&lm->free_trnsl_line_list, curline, entry);
-    lm->free_trnsl_line_cnt--;
     
     //fprintf(stderr, "get_next_free_line free_line_cnt %d\n", lm->free_line_cnt);
 
@@ -270,78 +211,9 @@ static void ssd_advance_write_pointer(struct ssd *ssd)
     }
 }
 
-static void ssd_advance_trnsl_write_pointer(struct ssd *ssd)
-{
-    struct ssdparams *spp = &ssd->sp;
-    struct write_pointer *wpp = &ssd->wp_t;
-    struct line_mgmt *lm = &ssd->lm;
-
-    check_addr(wpp->ch, spp->nchs);
-    wpp->ch++;
-    if (wpp->ch == spp->nchs) {
-        wpp->ch = 0;
-        check_addr(wpp->lun, spp->luns_per_ch);
-        wpp->lun++;
-        /* in this case, we should go to next lun */
-        if (wpp->lun == spp->luns_per_ch) {
-            wpp->lun = 0;
-            /* go to next page in the block */
-            check_addr(wpp->pg, spp->pgs_per_blk);
-            wpp->pg++;
-            if (wpp->pg == spp->pgs_per_blk) {
-                wpp->pg = 0;
-                /* move current line to {victim,full} line list */
-                if (wpp->curline->vpc == spp->pgs_per_line) {
-                    /* all pgs are still valid, move to full line list */
-                    ftl_assert(wpp->curline->ipc == 0);
-                    QTAILQ_INSERT_TAIL(&lm->full_trnsl_line_list, wpp->curline, entry);
-                    lm->full_trnsl_line_cnt++;
-                } else {
-                    ftl_assert(wpp->curline->vpc >= 0 && wpp->curline->vpc < spp->pgs_per_line);
-                    /* there must be some invalid pages in this line */
-                    ftl_assert(wpp->curline->ipc > 0);
-                    pqueue_insert(lm->victim_trnsl_line_pq, wpp->curline);
-                    lm->victim_line_cnt++;
-                }
-                /* current line is used up, pick another empty line */
-                check_addr(wpp->blk, spp->blks_per_pl);
-                wpp->curline = NULL;
-                wpp->curline = get_next_free_line(ssd);
-                if (!wpp->curline) {
-                    /* TODO */
-                    abort();
-                }
-                wpp->blk = wpp->curline->id;
-                check_addr(wpp->blk, spp->blks_per_pl);
-                /* make sure we are starting from page 0 in the super block */
-                ftl_assert(wpp->pg == 0);
-                ftl_assert(wpp->lun == 0);
-                ftl_assert(wpp->ch == 0);
-                /* TODO: assume # of pl_per_lun is 1, fix later */
-                ftl_assert(wpp->pl == 0);
-            }
-        }
-    }
-}
-
 static struct ppa get_new_page(struct ssd *ssd)
 {
     struct write_pointer *wpp = &ssd->wp;
-    struct ppa ppa;
-    ppa.ppa = 0;
-    ppa.g.ch = wpp->ch;
-    ppa.g.lun = wpp->lun;
-    ppa.g.pg = wpp->pg;
-    ppa.g.blk = wpp->blk;
-    ppa.g.pl = wpp->pl;
-    ftl_assert(ppa.g.pl == 0);
-
-    return ppa;
-}
-
-static struct ppa get_new_trnsl_page(struct ssd *ssd)
-{
-    struct write_pointer *wpp = &ssd->wp_t;
     struct ppa ppa;
     ppa.ppa = 0;
     ppa.g.ch = wpp->ch;
@@ -409,20 +281,10 @@ static void ssd_init_params(struct ssdparams *spp, FemuCtrl *n)
 
     spp->gc_thres_pcent = n->bb_params.gc_thres_pcent/100.0;
     spp->gc_thres_lines = (int)((1 - spp->gc_thres_pcent) * spp->tt_lines);
-    //spp->gc_thres_lines = (int)((1 - spp->gc_thres_pcent) * spp->tt_lines) * DATA_PER_TT;
     spp->gc_thres_pcent_high = n->bb_params.gc_thres_pcent_high/100.0;
     spp->gc_thres_lines_high = (int)((1 - spp->gc_thres_pcent_high) * spp->tt_lines);
-    //spp->gc_thres_lines_high = (int)((1 - spp->gc_thres_pcent) * spp->tt_lines) * DATA_PER_TT;
-    spp->gc_thres_pcent_high = n->bb_params.gc_thres_pcent_high/100.0;
     spp->enable_gc_delay = true;
 
-
-	spp->trnsl_gc_thres_lines = spp->tt_lines * spp->gc_thres_pcent * (1 - DATA_PER_TT);
-
-    spp->ent_per_trnsl_pg = 1024;
-    spp->gtd_sz = spp->tt_pgs / spp->ent_per_trnsl_pg;
-    spp->num_buck = 8;
-    spp->cmt_sz = 1 << spp->num_buck;
 
     check_params(spp);
 
@@ -535,12 +397,6 @@ void ssd_init(FemuCtrl *n)
 
     qemu_thread_create(&ssd->ftl_thread, "FEMU-FTL-Thread", ftl_thread, n,
                        QEMU_THREAD_JOINABLE);
-
-    ssd->cmt = (cmt_ent*)calloc(spp->num_buck, sizeof(cmt_ent));
-	ssd->cmt_len = 0;
-	ssd->gtd = (struct ppa*)calloc(spp->gtd_sz, sizeof(struct ppa));
-	for(int i=0; i<spp->gtd_sz; i++)
-		ssd->gtd[i].ppa = 0xffffffff;
 }
 
 static inline bool valid_ppa(struct ssd *ssd, struct ppa *ppa)
@@ -724,53 +580,6 @@ static void mark_page_invalid(struct ssd *ssd, struct ppa *ppa)
     }
 }
 
-static void mark_trnsl_page_invalid(struct ssd *ssd, struct ppa *ppa)
-{
-    struct line_mgmt *lm = &ssd->lm;
-    struct ssdparams *spp = &ssd->sp;
-    struct nand_block *blk = NULL;
-    struct nand_page *pg = NULL;
-    bool was_full_line = false;
-    struct line *line;
-
-    /* update corresponding page status */
-    pg = get_pg(ssd, ppa);
-    ftl_assert(pg->status == PG_VALID);
-    pg->status = PG_INVALID;
-
-    /* update corresponding block status */
-    blk = get_blk(ssd, ppa);
-    ftl_assert(blk->ipc >= 0 && blk->ipc < spp->pgs_per_blk);
-    blk->ipc++;
-    ftl_assert(blk->vpc > 0 && blk->vpc <= spp->pgs_per_blk);
-    blk->vpc--;
-
-    /* update corresponding line status */
-    line = get_line(ssd, ppa);
-    ftl_assert(line->ipc >= 0 && line->ipc < spp->pgs_per_line);
-    if (line->vpc == spp->pgs_per_line) {
-        ftl_assert(line->ipc == 0);
-        was_full_line = true;
-    }
-    line->ipc++;
-    ftl_assert(line->vpc > 0 && line->vpc <= spp->pgs_per_line);
-    /* Adjust the position of the victime line in the pq under over-writes */
-    if (line->pos) {
-        /* Note that line->vpc will be updated by this call */
-        pqueue_change_priority(lm->victim_trnsl_line_pq, line->vpc - 1, line);
-    } else {
-        line->vpc--;
-    }
-
-    if (was_full_line) {
-        /* move line: "full" -> "victim" */
-        QTAILQ_REMOVE(&lm->full_trnsl_line_list, line, entry);
-        lm->full_line_cnt--;
-        pqueue_insert(lm->victim_trnsl_line_pq, line);
-        lm->victim_trnsl_line_cnt++;
-    }
-}
-
 static void mark_page_valid(struct ssd *ssd, struct ppa *ppa)
 {
     struct nand_block *blk = NULL;
@@ -833,57 +642,11 @@ static uint64_t gc_write_page(struct ssd *ssd, struct ppa *old_ppa)
     uint64_t lpn = get_rmap_ent(ssd, old_ppa);
 
     ftl_assert(valid_lpn(ssd, lpn));
-
-	//calculate cmt latency
-	cmt_oper(ssd, lpn);
-	cmt_dirty(ssd, lpn);
-
-	new_ppa = get_new_page(ssd);
+    new_ppa = get_new_page(ssd);
     /* update maptbl */
     set_maptbl_ent(ssd, lpn, &new_ppa);
     /* update rmap */
     set_rmap_ent(ssd, lpn, &new_ppa);
-
-    mark_page_valid(ssd, &new_ppa);
-
-    /* need to advance the write pointer here */
-    ssd_advance_write_pointer(ssd);
-
-    if (ssd->sp.enable_gc_delay) {
-        struct nand_cmd gcw;
-        gcw.type = GC_IO;
-        gcw.cmd = NAND_WRITE;
-        gcw.stime = 0;
-        ssd_advance_status(ssd, &new_ppa, &gcw);
-    }
-
-    /* advance per-ch gc_endtime as well */
-#if 0
-    new_ch = get_ch(ssd, &new_ppa);
-    new_ch->gc_endtime = new_ch->next_ch_avail_time;
-#endif
-
-    new_lun = get_lun(ssd, &new_ppa);
-    new_lun->gc_endtime = new_lun->next_lun_avail_time;
-
-    return 0;
-}
-
-static uint64_t gc_write_trnsl_page(struct ssd *ssd, struct ppa *old_ppa)
-{
-    struct ppa new_ppa;
-    struct nand_lun *new_lun;
-    uint64_t mvpn = get_rmap_ent(ssd, old_ppa);
-
-	//calculate cmt latency
-	cmt_oper(ssd, mvpn * 1024);
-	cmt_dirty(ssd, mvpn * 1024);
-
-	new_ppa = get_new_page(ssd);
-    /* update maptbl */
-    set_maptbl_ent(ssd, mvpn, &new_ppa);
-    /* update rmap */
-    set_rmap_ent(ssd, mvpn, &new_ppa);
 
     mark_page_valid(ssd, &new_ppa);
 
@@ -932,28 +695,6 @@ static struct line *select_victim_line(struct ssd *ssd, bool force)
     return victim_line;
 }
 
-static struct line *select_trnsl_victim_line(struct ssd *ssd, bool force)
-{
-    struct line_mgmt *lm = &ssd->lm;
-    struct line *victim_line = NULL;
-
-    victim_line = pqueue_peek(lm->victim_trnsl_line_pq);
-    if (!victim_line) {
-        return NULL;
-    }
-
-    if (!force && victim_line->ipc < ssd->sp.pgs_per_line / 8) {
-        return NULL;
-    }
-
-    pqueue_pop(lm->victim_trnsl_line_pq);
-    victim_line->pos = 0;
-    lm->victim_trnsl_line_cnt--;
-
-    /* victim_line is a danggling node now */
-    return victim_line;
-}
-
 /* here ppa identifies the block we want to clean */
 static void clean_one_block(struct ssd *ssd, struct ppa *ppa)
 {
@@ -978,29 +719,6 @@ static void clean_one_block(struct ssd *ssd, struct ppa *ppa)
     ftl_assert(get_blk(ssd, ppa)->vpc == cnt);
 }
 
-static void clean_one_trnsl_block(struct ssd *ssd, struct ppa *ppa)
-{
-    struct ssdparams *spp = &ssd->sp;
-    struct nand_page *pg_iter = NULL;
-    int cnt = 0;
-
-    for (int pg = 0; pg < spp->pgs_per_blk; pg++) {
-        ppa->g.pg = pg;
-        pg_iter = get_pg(ssd, ppa);
-        /* there shouldn't be any free page in victim blocks */
-        ftl_assert(pg_iter->status != PG_FREE);
-        if (pg_iter->status == PG_VALID) {
-            gc_read_page(ssd, ppa);
-            /* delay the maptbl update until "write" happens */
-            gc_write_trnsl_page(ssd, ppa);
-            cnt++;
-        }
-    }
-    ssd->ByteWrittenGC += cnt * (spp->secs_per_pg * spp->secsz);
-
-    ftl_assert(get_blk(ssd, ppa)->vpc == cnt);
-}
-
 static void mark_line_free(struct ssd *ssd, struct ppa *ppa)
 {
     struct line_mgmt *lm = &ssd->lm;
@@ -1009,17 +727,6 @@ static void mark_line_free(struct ssd *ssd, struct ppa *ppa)
     line->vpc = 0;
     /* move this line to free line list */
     QTAILQ_INSERT_TAIL(&lm->free_line_list, line, entry);
-    lm->free_line_cnt++;
-}
-
-static void mark_trnsl_line_free(struct ssd *ssd, struct ppa *ppa)
-{
-    struct line_mgmt *lm = &ssd->lm;
-    struct line *line = get_line(ssd, ppa);
-    line->ipc = 0;
-    line->vpc = 0;
-    /* move this line to free line list */
-    QTAILQ_INSERT_TAIL(&lm->free_trnsl_line_list, line, entry);
     lm->free_line_cnt++;
 }
 
@@ -1042,6 +749,12 @@ static int do_gc(struct ssd *ssd, bool force)
               victim_line->ipc, ssd->lm.victim_line_cnt, ssd->lm.full_line_cnt,
               ssd->lm.free_line_cnt);
 
+    //Begin======================================================
+    //ssd->ByteWrittenGC += victim_line->vpc * (spp->secs_per_pg * spp->secsz);
+    //fprintf(stderr, "do_gc BytewrittenGC: %lu\n", ssd->ByteWrittenGC);
+    //fprintf(stderr, "do_gc\nfree_lines: %d, victim_lins: %d, full_lines: %d\n", ssd->lm.free_line_cnt, ssd->lm.victim_line_cnt, ssd->lm.full_line_cnt);
+    //End========================================================
+
     /* copy back valid data */
     for (ch = 0; ch < spp->nchs; ch++) {
         for (lun = 0; lun < spp->luns_per_ch; lun++) {
@@ -1050,55 +763,6 @@ static int do_gc(struct ssd *ssd, bool force)
             ppa.g.pl = 0;
             lunp = get_lun(ssd, &ppa);
             clean_one_block(ssd, &ppa);
-            mark_block_free(ssd, &ppa);
-
-            if (spp->enable_gc_delay) {
-                struct nand_cmd gce;
-                gce.type = GC_IO;
-                gce.cmd = NAND_ERASE;
-                gce.stime = 0;
-                ssd_advance_status(ssd, &ppa, &gce);
-            }
-
-            lunp->gc_endtime = lunp->next_lun_avail_time;
-        }
-    }
-
-    /* update line status */
-    mark_line_free(ssd, &ppa);
-
-    return 0;
-}
-
-static int do_map_gc(struct ssd *ssd, bool force)
-{
-    //fprintf(stderr, "run do_gc\n");
-    struct line *victim_line = NULL;
-    struct ssdparams *spp = &ssd->sp;
-    struct nand_lun *lunp;
-    struct ppa ppa;
-    int ch, lun;
-
-    victim_line = select_victim_trnsl_line(ssd, force);
-    if (!victim_line) {
-        fprintf(stderr, "victim trnsl_line fail..");
-		return -1;
-    }
-	
-
-    ppa.g.blk = victim_line->id;
-    ftl_debug("GC-ing line:%d,ipc=%d,victim=%d,full=%d,free=%d\n", ppa.g.blk,
-              victim_line->ipc, ssd->lm.victim_line_cnt, ssd->lm.full_line_cnt,
-              ssd->lm.free_line_cnt);
-
-    /* copy back valid data */
-    for (ch = 0; ch < spp->nchs; ch++) {
-        for (lun = 0; lun < spp->luns_per_ch; lun++) {
-            ppa.g.ch = ch;
-            ppa.g.lun = lun;
-            ppa.g.pl = 0;
-            lunp = get_lun(ssd, &ppa);
-            clean_one_trnsl_block(ssd, &ppa);
             mark_block_free(ssd, &ppa);
 
             if (spp->enable_gc_delay) {
@@ -1149,11 +813,7 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
         srd.cmd = NAND_READ;
         srd.stime = req->stime;
         sublat = ssd_advance_status(ssd, &ppa, &srd);
-        
-		//calculate cmt latency
-		cmt_oper(ssd, lpn);
-
-		maxlat = (sublat > maxlat) ? sublat : maxlat;
+        maxlat = (sublat > maxlat) ? sublat : maxlat;
     }
 
     return maxlat;
@@ -1212,11 +872,6 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
         swr.stime = req->stime;
         /* get latency statistics */
         curlat = ssd_advance_status(ssd, &ppa, &swr);
-		
-		//calculate cmt delay
-		cmt_oper(ssd, lpn);
-		cmt_dirty(ssd, lpn);
-
         maxlat = (curlat > maxlat) ? curlat : maxlat;
     
 	//Begin(0)===================================================================
@@ -1227,33 +882,6 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
     }
 
     return maxlat;
-}
-
-uint64_t trnsl_page_write(struct ssd *ssd, uint64_t mvpn)	//update translation page gtd, return latency
-{
-	struct ppa *gtd = ssd->gtd;
-	struct ppa mppn;
-	struct ssdparams *spp = ssd->sp;
-
-	if(mppn.ppa != 0xFFFFFFFF){
-	//1. read & invalidate gtd[mvpn]
-		mppn = gtd[mvpn];
-		mark_page_invalid(sdd, mppn);
-	{
-	
-	//2. get a new page(should gc?)
-	mppn = get_new_trnsl_page(ssd);
-	
-	//3. update gtd
-	gtd[mvpn] = mppn;
-	set_rmap_ent(ssd, mvpn, mppn);
-
-	//4. nand write
-	mark_page_valid(ssd, &mppn);
-
-	ssd_advance_trnsl_write_pointer(ssd);
-
-	return 0;
 }
 
 static void *ftl_thread(void *arg)
@@ -1347,119 +975,3 @@ static void *ftl_thread(void *arg)
     //fprintf(stderr, "ftl_thread end====================================\n");
     return NULL;
 }
-
-void cmt_append (struct ssd *ssd, uint64_t lpn)	//write new mapping info at CMT
-{
-	//cmt
-	uint64_t mvpn = lpn / 1024;
-	uint64_t idx = mvpn % ssd->sp.num_buck;
-	cmt_ent* ent = (cmt_ent*)calloc(1, sizeof(cmt_ent));
-	ent->mvpn = mvpn;
-	ent->d = false;
-
-	cmt_ent* cmt = ssd->cmt;
-	cmt_ent* cur = ssd->cmt + idx;
-	while(cur->black_n){
-		cur = cur->black_n;
-	}
-	cur->black_n = ent;
-	ent->black_p = cur;
-
-	//lru list
-	ent->blue_n = cmt->blue_n;		//let cmt[0], start of lru
-	ent->blue_p = cmt;
-	cmt->blue_n = ent;
-	if(ent->blue_n)		ent->blue_n->blue_p = ent;
-
-	return;
-}
-
-bool cmt_find (struct ssd *ssd, uint64_t lpn)	//return whether hit or miss. we don't need real ppa(use page mapping table)
-{	//return whether hit/miss
-	uint64_t mvpn = lpn / 1024;
-	uint64_t idx = mvpn % ssd->sp.num_buck;
-	bool hit = 0;
-	cmt_ent* cmt = ssd->cmt;
-	cmt_ent* ent = ssd->cmt + idx;
-	while(ent->black_n){
-		if(ent->mvpn == mvpn){
-			hit = 1;
-			break;
-		}
-	}
-
-	if(!hit)
-		return false;
-	
-	//blue arrow
-	cmt_ent *prev, *next;
-	prev = ent->blue_p;
-	next = ent->blue_n;
-	prev->blue_n = next;
-	if(next) next->blue_p = prev;
-
-	ent->blue_p = cmt;
-	ent->blue_n = cmt->blue_n;
-	cmt->blue_n = ent;
-	if(ent->blue_n)		ent->blue_n->blue_p = ent;
-	
-	return true;
-}
-
-void cmt_evict (struct ssd *ssd)	//evict, and return latency
-{
-	uint64_t lat = 0;
-	uint64_t mvpn;
-	bool d;
-
-	//blue arrow
-	cmt_ent* cur = ssd->cmt;
-	while(cur->blue_n)
-		cur = cur->blue_n;
-
-	mvpn = cur->mvpn;
-	d = cur->d;
-
-	//black arrow
-	cur->black_p->black_n = cur->black_n;
-	if(cur->black_n)	cur->black_n->black_p = cur->black_p;
-
-	free(cur);
-	
-	if(d){
-		if(should_map_gc(ssd))
-			lat += do_map_gc(ssd, true);
-		trnsl_page_write(ssd, mvpn);
-	}
-	return;
-}
-
-void cmt_dirty (struct ssd *ssd, uint64_t lpn)
-{
-	uint64_t mvpn = lpn / 1024;
-	uint64_t idx = mvpn % ssd->sp.buck_num;
-	cmt_ent *cmt = ssd->cmt;
-	cmt_ent *cur = cmt + idx;
-
-	while(cur->black_n){
-		if(cur->mvpn == mvpn){
-			cur->d = true;
-			break;
-		}
-	}
-}
-
-void cmt_oper (struct ssd *ssd, uint64_t lpn)	//run cmt operation, return cmt latency
-{
-	uint64_t mvpn = lpn / 1024;
-	if(!cmt_find(ssd, mvpn, lpn))	//cmt hit
-		return;
-
-	//cmt miss
-	if(ssd->cmt_len == ssd->sp.cmt_sz)
-		cmt_evict(ssd);
-	cmt_append(ssd, mvpn, lpn);
-
-	return;
-}
-

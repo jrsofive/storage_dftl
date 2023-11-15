@@ -7,8 +7,6 @@
 #define INVALID_LPN     (~(0ULL))
 #define UNMAPPED_PPA    (~(0ULL))
 
-#define DATA_PER_TT		((float)0.99)
-
 enum {
     NAND_READ =  0,
     NAND_WRITE = 1,
@@ -131,8 +129,6 @@ struct ssdparams {
     int gc_thres_lines_high;
     bool enable_gc_delay;
 
-	int trnsl_gc_thres_lines;
-
     /* below are all calculated values */
     int secs_per_blk; /* # of sectors per block */
     int secs_per_pl;  /* # of sectors per plane */
@@ -158,12 +154,6 @@ struct ssdparams {
     int tt_pls;       /* total # of planes in the SSD */
 
     int tt_luns;      /* total # of LUNs in the SSD */
-
-    //for DFTL
-    int ent_per_trnsl_pg;   /* entries per traslation page */
-    int gtd_sz;		    /* GTD size */
-    int cmt_sz;		    /* CMT size */
-    int num_buck;	    /* num buckets */
 };
 
 typedef struct line {
@@ -173,8 +163,6 @@ typedef struct line {
     QTAILQ_ENTRY(line) entry; /* in either {free,victim,full} list */
     /* position in the priority queue for victim lines */
     size_t                  pos;
-
-	bool stat;	/* 0: free or data line, 1: translation line */
 } line;
 
 /* wp: record next write addr */
@@ -198,15 +186,6 @@ struct line_mgmt {
     int free_line_cnt;
     int victim_line_cnt;
     int full_line_cnt;
-
-	//appended variables for dftl
-    QTAILQ_HEAD(free_trnsl_line_list, line) free_trnsl_line_list;
-	pqueue_t *victim_trnsl_line_pq;
-	QTAILQ_HEAD(full_trnsl_line_list, line) full_trnsl_line_list;
-	int free_data_line_cnt;
-	int free_trnsl_line_cnt;
-	int victim_trnsl_line_cnt;
-	int full_trnsl_line_cnt;
 };
 
 struct nand_cmd {
@@ -215,24 +194,13 @@ struct nand_cmd {
     int64_t stime; /* Coperd: request arrival time */
 };
 
-typedef struct cmt_ent{
-    uint64_t mvpn; 	
-    bool d;
-
-    struct cmt_ent* black_n;
-    struct cmt_ent* black_p;
-    struct cmt_ent* blue_n;
-    struct cmt_ent* blue_p;
-} cmt_ent;
-
 struct ssd {
     char *ssdname;
     struct ssdparams sp;
     struct ssd_channel *ch;
     struct ppa *maptbl; /* page level mapping table */
     uint64_t *rmap;     /* reverse mapptbl, assume it's stored in OOB */
-    struct write_pointer wp;	/* write pointer for data page */
-    struct write_pointer wp_t;	/* write pointer for translation page */
+    struct write_pointer wp;
     struct line_mgmt lm;
 
     /* lockless ring for communication with NVMe IO thread */
@@ -241,36 +209,13 @@ struct ssd {
     bool *dataplane_started_ptr;
     QemuThread ftl_thread;
 
-	//ssd statistics
+    //Begin(0)========================================================
     uint64_t ByteWrittenHost;
     uint64_t ByteWrittenGC;
-	uint64_t ByteWrittenMap;
-	uint64_t ByteWrittenMapGC;
-	uint64_t CmtHit;
-	uint64_t CmtMiss;
-
-	//appended variables for dftl
-    cmt_ent* cmt;
-	int cmt_len;		//number of entries in cmt <cmt_sz
-	struct ppa* gtd;
+    //end(0)==========================================================
 };
 
 void ssd_init(FemuCtrl *n);
-
-//appended function for cmt
-uint64_t trnsl_page_write(struct ssd *ssd, uint64_t mvpn);
-void cmt_append(struct ssd *ssd, uint64_t lpn);
-bool cmt_find(struct ssd *ssd, uint64_t lpn);
-void cmt_evict(struct ssd *ssd);
-void cmt_dirty(struct ssd *ssd, uint64_t lpn);
-void cmt_oper(struct ssd *ssd, uint64_t lpn);
-
-//static struct ppa get_new_trnsl_page(struct ssd *ssd);
-//static void ssd_advance_trnsl_write_pointer(struct ssd *ssd);
-//uint64_t trnsl_page_write(struct ssd *ssd, uint64_t mvpn);
-//uint64_t cmt_evict(struct ssd *ssd);
-//uint64_t cmt_oper(struct ssd *ssd, uint64_t lpn);
-//static struct line *select_trnsl_victim_line(struct ssd *ssd, bool force);
 
 #ifdef FEMU_DEBUG_FTL
 #define ftl_debug(fmt, ...) \
