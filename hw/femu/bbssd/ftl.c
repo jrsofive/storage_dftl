@@ -765,7 +765,8 @@ static void mark_trnsl_page_invalid(struct ssd *ssd, struct ppa *ppa)
 
     // update corresponding line status 
     line = get_line(ssd, ppa);
-    ftl_assert(line->ipc >= 0 && line->ipc < spp->pgs_per_line);
+    fprintf(fp, "mark_trnsl_page_invalid(1): ipc %d, vpc %d\n", line->ipc, line->vpc);
+	ftl_assert(line->ipc >= 0 && line->ipc < spp->pgs_per_line);
     if (line->vpc == spp->pgs_per_line) {
         ftl_assert(line->ipc == 0);
         was_full_line = true;
@@ -788,7 +789,8 @@ static void mark_trnsl_page_invalid(struct ssd *ssd, struct ppa *ppa)
         lm->victim_trnsl_line_cnt++;
     }
 
-	fprintf(fp, "end gc_write_trnsl_page...\n");
+    fprintf(fp, "mark_trnsl_page_invalid(2): ipc %d, vpc %d\n", line->ipc, line->vpc);
+	fprintf(fp, "end mark_trnsl_page_invalid...\n");
 }
 
 static void mark_page_valid(struct ssd *ssd, struct ppa *ppa)
@@ -808,9 +810,11 @@ static void mark_page_valid(struct ssd *ssd, struct ppa *ppa)
     blk->vpc++;
 
     /* update corresponding line status */
-    line = get_line(ssd, ppa);
+	line = get_line(ssd, ppa);
+    fprintf(fp, "mark_page_valid(1): ipc %d, vpc %d", line->ipc, line->vpc);
     ftl_assert(line->vpc >= 0 && line->vpc < ssd->sp.pgs_per_line);
     line->vpc++;
+    fprintf(fp, "mark_page_valid(2): ipc %d, vpc %d", line->ipc, line->vpc);
 }
 
 static void mark_block_free(struct ssd *ssd, struct ppa *ppa)
@@ -1291,9 +1295,7 @@ uint64_t trnsl_page_write(struct ssd *ssd, uint64_t mvpn)	//update translation p
 	set_rmap_ent(ssd, mvpn, &mppn);
 
 	//4. nand write
-	fprintf(fp, "____before mark_page_valid	ipc %d, vpc %d\n", ssd->wp_t.curline->ipc, ssd->wp_t.curline->vpc);
 	mark_page_valid(ssd, &mppn);
-	fprintf(fp, "____after  mark_page_valid	ipc %d, vpc %d\n", ssd->wp_t.curline->ipc, ssd->wp_t.curline->vpc);
 	ssd->ByteWrittenMap += ssd->sp.secs_per_pg * ssd->sp.secsz;
 
 	ssd_advance_trnsl_write_pointer(ssd);
@@ -1569,4 +1571,4 @@ void cmt_oper (struct ssd *ssd, uint64_t lpn)	//run cmt operation, return cmt la
 	fprintf(fp, "end cmt_oper...\n");
 	return;
 }
-// git test
+// git test asd
