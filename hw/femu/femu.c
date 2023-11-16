@@ -574,6 +574,7 @@ static void femu_realize(PCIDevice *pci_dev, Error **errp)
     n->ByteWrittenHost = 0;
     n->ByteWrittenGC = 0;
     n->WAF = 0;
+	n->expire_time = 0;
     //End(0) 2023.11.03 15:30=========================
 }
 
@@ -600,8 +601,10 @@ uint64_t nvme_write_amplification(FemuCtrl *n, NvmeCmd *cmd)
     uint64_t prp1 = le64_to_cpu(cmd->dptr.prp1);
     uint64_t prp2 = le64_to_cpu(cmd->dptr.prp2);
 
-    fprintf(stderr, "nvme_write_amplification %lu %lu %lu %lu -> %lu\n", host, gc, map, mapgc, waf);	//will be deleted
-	fprintf(stderr, "cache hit, miss %lu %lu\n", hit, miss);
+    fprintf(stderr, "nvme_write_amplification %lu %lu %lu %lu -> %f\n", host, gc, map, mapgc, (host+gc+map+mapgc)/(float)host);	//will be deleted
+	fprintf(stderr, "cache hit	%lu,	miss 		%lu\n", hit, miss);
+	fprintf(stderr, "hit ratio	%f, 	miss ratio 	%f\n", hit/(float)(hit+miss), miss/(float)(hit+miss));
+	fprintf(stderr, "expire time %ld\n", n->expire_time);
 
     return dma_read_prp(n, (uint8_t*) &(n->WAF), sizeof(n->WAF), prp1, prp2);
 }

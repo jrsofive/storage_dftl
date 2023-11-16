@@ -1401,6 +1401,8 @@ typedef struct FemuCtrl {
 
 	uint64_t		CmtHit;
 	uint64_t		CmtMiss;
+
+	int64_t			expire_time;
 } FemuCtrl;
 
 typedef struct NvmePollerThreadArgument {

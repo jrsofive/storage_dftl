@@ -7,7 +7,7 @@
 #define INVALID_LPN     (~(0ULL))
 #define UNMAPPED_PPA    (~(0ULL))
 
-#define DATA_PER_TT		((float)0.99)
+#define DATA_PER_TT		((float)0.97)
 
 enum {
     NAND_READ =  0,

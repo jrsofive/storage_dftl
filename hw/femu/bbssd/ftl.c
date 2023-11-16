@@ -853,6 +853,7 @@ static uint64_t gc_write_page(struct ssd *ssd, struct ppa *old_ppa)
     ftl_assert(valid_lpn(ssd, lpn));
 
 	//calculate cmt latency
+	fprintf(stderr, "gc write page\n");
 	lat = cmt_oper(ssd, lpn, 0);
 	cmt_dirty(ssd, lpn);
 
@@ -894,6 +895,7 @@ static uint64_t gc_write_trnsl_page(struct ssd *ssd, struct ppa *old_ppa)
     uint64_t mvpn = get_rmap_ent(ssd, old_ppa);
 
 	//calculate cmt latency
+	fprintf(stderr, "gc_write_trnsl_page\n");
 	cmt_oper(ssd, mvpn * 1024, 0);
 	cmt_dirty(ssd, mvpn * 1024);
 
@@ -1205,7 +1207,9 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
 
     for (lpn = start_lpn; lpn <= end_lpn; lpn++) {
         ppa = get_maptbl_ent(ssd, lpn);
-        if (mapped_ppa(&ppa)) {
+		fprintf(stderr, "get maptbl ent\n");        
+
+		if (mapped_ppa(&ppa)) {
             /* update old page information first */
             mark_page_invalid(ssd, &ppa);
             set_rmap_ent(ssd, INVALID_LPN, &ppa);
@@ -1213,15 +1217,21 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
 
         /* new write */
         ppa = get_new_page(ssd);
+		fprintf(stderr, "get new page\n");
+
         /* update maptbl */
         set_maptbl_ent(ssd, lpn, &ppa);
+		fprintf(stderr, "set maptbl ent\n");
         /* update rmap */
         set_rmap_ent(ssd, lpn, &ppa);
+		fprintf(stderr, "rmap ent\n");
 
         mark_page_valid(ssd, &ppa);
+		fprintf(stderr, "mark page valid\n");
 	
         /* need to advance the write pointer here */
         ssd_advance_write_pointer(ssd);
+		fprintf(stderr, "adv write pointer\n");
 
         struct nand_cmd swr;
         swr.type = USER_IO;
@@ -1229,9 +1239,11 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
         swr.stime = req->stime;
         /* get latency statistics */
         curlat = ssd_advance_status(ssd, &ppa, &swr);
+		fprintf(stderr, "adv status\n");
 		
 		//calculate cmt delay
 		if(lpn == start_lpn || !(lpn%1024)){
+			fprintf(stderr, "ssdwrite\n");
 			curlat += cmt_oper(ssd, lpn, swr.stime + curlat);
 			cmt_dirty(ssd, lpn);
 		}
@@ -1401,6 +1413,7 @@ void cmt_append (struct ssd *ssd, uint64_t lpn)	//write new mapping info at CMT
 
 	ssd->cmt_len++;
 
+	fprintf(stderr, "end cmt_append\n");
 	return;
 }
 
@@ -1437,6 +1450,7 @@ bool cmt_find (struct ssd *ssd, uint64_t lpn)	//return whether hit or miss. we d
 	cmt->blue_n = ent;
 	if(ent->blue_n)		ent->blue_n->blue_p = ent;
 	
+	fprintf(stderr, "end cmt_find\n");
 	return true;
 }
 
@@ -1467,7 +1481,7 @@ uint64_t cmt_evict (struct ssd *ssd, uint64_t stime)	//evict, and return latency
 			do_map_gc(ssd, true);
 		trnsl_page_write(ssd, mvpn, stime);
 	}
-
+	fprintf(stderr, "end cmt_evict\n");
 	return lat;
 }
 
@@ -1487,6 +1501,7 @@ void cmt_dirty (struct ssd *ssd, uint64_t lpn)
 		cur = cur->black_n;
 	}
 
+	fprintf(stderr, "end cmt_dirty\n");
 	return;
 }
 
@@ -1505,5 +1520,6 @@ uint64_t cmt_oper (struct ssd *ssd, uint64_t lpn, uint64_t stime)	//run cmt oper
 		lat += cmt_evict(ssd, stime);
 	cmt_append(ssd, lpn);
 
+	fprintf(stderr, "end cmt_oper\n");
 	return lat;
 }
