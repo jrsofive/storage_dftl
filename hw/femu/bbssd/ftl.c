@@ -1485,4 +1485,5 @@ uint64_t cmt_oper (struct ssd *ssd, uint64_t lpn, uint64_t stime)	//run cmt oper
 	cmt_append(ssd, lpn);
 
 	return lat;
+}
 // final}
