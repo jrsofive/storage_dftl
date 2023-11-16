@@ -747,7 +747,6 @@ static void mark_trnsl_page_invalid(struct ssd *ssd, struct ppa *ppa)
 
     /* update corresponding line status */
     line = get_line(ssd, ppa);
-    fprintf(fp, "____mark_trnsl_page_invalid: ipc %d, vpc %d", line->ipc, line->vpc);
 	ftl_assert(line->ipc >= 0 && line->ipc < spp->pgs_per_line);
     if (line->vpc == spp->pgs_per_line) {
         ftl_assert(line->ipc == 0);
@@ -770,7 +769,6 @@ static void mark_trnsl_page_invalid(struct ssd *ssd, struct ppa *ppa)
         pqueue_insert(lm->victim_trnsl_line_pq, line);
         lm->victim_trnsl_line_cnt++;
     }
-    fprintf(fp, "____after mark_trnsl_page_invalid: ipc %d, vpc %d", line->ipc, line->vpc);
 }
 
 static void mark_page_valid(struct ssd *ssd, struct ppa *ppa)

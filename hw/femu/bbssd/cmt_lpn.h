@@ -7,7 +7,7 @@
 #define INVALID_LPN     (~(0ULL))
 #define UNMAPPED_PPA    (~(0ULL))
 
-#define DATA_PER_TT		((float)0.97)
+#define DATA_PER_TT		((float)0.99)
 
 enum {
     NAND_READ =  0,
@@ -216,7 +216,7 @@ struct nand_cmd {
 };
 
 typedef struct cmt_ent{
-    uint64_t mvpn; 	
+    uint64_t lpn; 	
     bool d;
 
     struct cmt_ent* black_n;

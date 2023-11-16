@@ -421,7 +421,7 @@ static void ssd_init_params(struct ssdparams *spp, FemuCtrl *n)
 
     spp->ent_per_trnsl_pg = 1024;
     spp->gtd_sz = spp->tt_pgs / spp->ent_per_trnsl_pg;
-    spp->num_buck = 4;
+    spp->num_buck = 15;
     spp->cmt_sz = 1 << spp->num_buck;
 
     check_params(spp);
@@ -542,7 +542,7 @@ void ssd_init(FemuCtrl *n)
     ssd->cmt = (cmt_ent*)calloc(spp->num_buck, sizeof(cmt_ent));
 	for(int i=0; i<spp->num_buck; i++){
 		(ssd->cmt + i)->black_n = (ssd->cmt + i)->blue_n = NULL;
-		(ssd->cmt + i)->mvpn = 0xFFFFFFFF;
+		(ssd->cmt + i)->lpn = 0xFFFFFFFF;
 	}
 	ssd->cmt_len = 0;
 	ssd->gtd = (struct ppa*)calloc(spp->gtd_sz, sizeof(struct ppa));
@@ -887,6 +887,8 @@ static uint64_t gc_write_page(struct ssd *ssd, struct ppa *old_ppa)
 
 static uint64_t gc_write_trnsl_page(struct ssd *ssd, struct ppa *old_ppa)
 {
+	fprintf(stderr, "run gc_write_trnsl_page...\n");
+
     struct ppa new_ppa;
     struct nand_lun *new_lun;
     uint64_t mvpn = get_rmap_ent(ssd, old_ppa);
@@ -923,6 +925,8 @@ static uint64_t gc_write_trnsl_page(struct ssd *ssd, struct ppa *old_ppa)
 
     new_lun = get_lun(ssd, &new_ppa);
     new_lun->gc_endtime = new_lun->next_lun_avail_time;
+
+	fprintf(stderr, "end gc_write_trnsl_page...\n");
 
     return 0;
 }
@@ -1014,7 +1018,7 @@ static void clean_one_trnsl_block(struct ssd *ssd, struct ppa *ppa)
         }
     }
     ssd->ByteWrittenGC += cnt * (spp->secs_per_pg * spp->secsz);
-	fprintf(stderr, "map_gc - cnt: %d\n", cnt);
+
     ftl_assert(get_blk(ssd, ppa)->vpc == cnt);
 }
 
@@ -1084,6 +1088,7 @@ static int do_gc(struct ssd *ssd, bool force)
     /* update line status */
     mark_line_free(ssd, &ppa);
 
+	fprintf(stderr, "end do_gc...\n");
     return 0;
 }
 
@@ -1100,6 +1105,7 @@ static int do_map_gc(struct ssd *ssd, bool force)
 		return -1;
     }
 	
+	fprintf(stderr, "victim trnsl_line success\n");
     ppa.g.blk = victim_line->id;
     ftl_debug("GC-ing line:%d,ipc=%d,victim=%d,full=%d,free=%d\n", ppa.g.blk,
               victim_line->ipc, ssd->lm.victim_line_cnt, ssd->lm.full_line_cnt,
@@ -1228,10 +1234,8 @@ static uint64_t ssd_write(struct ssd *ssd, NvmeRequest *req)
         curlat = ssd_advance_status(ssd, &ppa, &swr);
 		
 		//calculate cmt delay
-		if(lpn == start_lpn || !(lpn%1024)){
-			curlat += cmt_oper(ssd, lpn, swr.stime + curlat);
-			cmt_dirty(ssd, lpn);
-		}
+		curlat += cmt_oper(ssd, lpn, swr.stime + curlat);
+		cmt_dirty(ssd, lpn);
         maxlat = (curlat > maxlat) ? curlat : maxlat;
     
 	//Begin(0)===================================================================
@@ -1355,6 +1359,7 @@ static void *ftl_thread(void *arg)
 			req->reqlat = lat;
 			req->expire_time += lat;
 			n->expire_time += lat;
+			fprintf(stderr, "reqlat %ld, expire_time %ld\n", req->reqlat, n->expire_time);
 
 			rc = femu_ring_enqueue(ssd->to_poller[i], (void *)&req, 1);
 	        if (rc != 1) {
@@ -1377,7 +1382,7 @@ void cmt_append (struct ssd *ssd, uint64_t lpn)	//write new mapping info at CMT
 	uint64_t mvpn = lpn / 1024;
 	uint64_t idx = mvpn % ssd->sp.num_buck;
 	cmt_ent* ent = (cmt_ent*)calloc(1, sizeof(cmt_ent));
-	ent->mvpn = mvpn;
+	ent->lpn = lpn;
 	ent->d = false;
 	ent->black_n = NULL;
 	ent->black_p = NULL;
@@ -1412,7 +1417,7 @@ bool cmt_find (struct ssd *ssd, uint64_t lpn)	//return whether hit or miss. we d
 	cmt_ent* ent = ssd->cmt + idx;
 		
 	while(ent){
-		if(ent->mvpn == mvpn){
+		if(ent->lpn == lpn){
 			hit = 1;
 			break;
 		}
@@ -1442,7 +1447,7 @@ bool cmt_find (struct ssd *ssd, uint64_t lpn)	//return whether hit or miss. we d
 uint64_t cmt_evict (struct ssd *ssd, uint64_t stime)	//evict, and return latency
 {
 	uint64_t lat = 0;
-	uint64_t mvpn;
+	uint64_t lpn;
 	bool d;
 
 	//blue arrow
@@ -1451,7 +1456,7 @@ uint64_t cmt_evict (struct ssd *ssd, uint64_t stime)	//evict, and return latency
 		cur = cur->blue_n;
 	cur->blue_p->blue_n = NULL;
 
-	mvpn = cur->mvpn;
+	lpn = cur->lpn;
 	d = cur->d;
 
 	//black arrow
@@ -1464,7 +1469,7 @@ uint64_t cmt_evict (struct ssd *ssd, uint64_t stime)	//evict, and return latency
 	if(d){
 		if(should_map_gc(ssd))
 			do_map_gc(ssd, true);
-		trnsl_page_write(ssd, mvpn, stime);
+		trnsl_page_write(ssd, lpn/1024, stime);
 	}
 
 	return lat;
@@ -1478,7 +1483,7 @@ void cmt_dirty (struct ssd *ssd, uint64_t lpn)
 	cmt_ent *cur = cmt + idx;
 
 	while(cur){
-		if(cur->mvpn == mvpn){
+		if(cur->lpn == lpn){
 			cur->d = true;
 			break;
 		}

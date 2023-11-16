@@ -209,10 +209,19 @@ struct ssd {
     bool *dataplane_started_ptr;
     QemuThread ftl_thread;
 
-    //Begin(0)========================================================
+	//ssd statistics
     uint64_t ByteWrittenHost;
     uint64_t ByteWrittenGC;
-    //end(0)==========================================================
+	uint64_t ByteWrittenMap;
+	uint64_t ByteWrittenMapGC;
+	uint64_t CmtHit;
+	uint64_t CmtMiss;
+
+	//appended variables for dftl
+    //cmt_ent* cmt;
+	//int cmt_len;		//number of entries in cmt <cmt_sz
+	//struct ppa* gtd;
+	int64_t expire_time;
 };
 
 void ssd_init(FemuCtrl *n);
