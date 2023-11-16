@@ -115,6 +115,7 @@ static void ssd_init_lines(struct ssd *ssd)
     QTAILQ_INIT(&lm->full_trnsl_line_list);
     
 	lm->free_line_cnt = 0;
+	lm->free_trnsl_line_cnt = 0;
     for (int i = 0; i < lm->tt_lines; i++) {
         line = &lm->lines[i];
         line->id = i;
@@ -133,7 +134,7 @@ static void ssd_init_lines(struct ssd *ssd)
 		}
     }
 
-    ftl_assert(lm->free_line_cnt == lm->tt_lines);
+    ftl_assert(lm->free_line_cnt + lm->free_trnsl_line_cnt == lm->tt_lines);
     lm->victim_line_cnt = 0;
     lm->full_line_cnt = 0;
 	lm->victim_trnsl_line_cnt = 0;
@@ -160,7 +161,7 @@ static void ssd_init_write_pointer(struct ssd *ssd)
 
 	wpp = &ssd->wp_t;
 		
-    curline = QTAILQ_FIRST(&lm->free_line_list);
+    curline = QTAILQ_FIRST(&lm->free_trnsl_line_list);
     QTAILQ_REMOVE(&lm->free_trnsl_line_list, curline, entry);
     lm->free_trnsl_line_cnt--;
 
@@ -301,7 +302,7 @@ static void ssd_advance_trnsl_write_pointer(struct ssd *ssd)
                     /* there must be some invalid pages in this line */
                     ftl_assert(wpp->curline->ipc > 0);
                     pqueue_insert(lm->victim_trnsl_line_pq, wpp->curline);
-                    lm->victim_line_cnt++;
+                    lm->victim_trnsl_line_cnt++;
                 }
                 /* current line is used up, pick another empty line */
                 check_addr(wpp->blk, spp->blks_per_pl);
@@ -765,7 +766,7 @@ static void mark_trnsl_page_invalid(struct ssd *ssd, struct ppa *ppa)
     if (was_full_line) {
         /* move line: "full" -> "victim" */
         QTAILQ_REMOVE(&lm->full_trnsl_line_list, line, entry);
-        lm->full_line_cnt--;
+        lm->full_trnsl_line_cnt--;
         pqueue_insert(lm->victim_trnsl_line_pq, line);
         lm->victim_trnsl_line_cnt++;
     }
@@ -1020,7 +1021,7 @@ static void mark_trnsl_line_free(struct ssd *ssd, struct ppa *ppa)
     line->vpc = 0;
     /* move this line to free line list */
     QTAILQ_INSERT_TAIL(&lm->free_trnsl_line_list, line, entry);
-    lm->free_line_cnt++;
+    lm->free_trnsl_line_cnt++;
 }
 
 static int do_gc(struct ssd *ssd, bool force)
@@ -1088,8 +1089,8 @@ static int do_map_gc(struct ssd *ssd, bool force)
 
     ppa.g.blk = victim_line->id;
     ftl_debug("GC-ing line:%d,ipc=%d,victim=%d,full=%d,free=%d\n", ppa.g.blk,
-              victim_line->ipc, ssd->lm.victim_line_cnt, ssd->lm.full_line_cnt,
-              ssd->lm.free_line_cnt);
+              victim_line->ipc, ssd->lm.victim_trnsl_line_cnt, ssd->lm.full_trnsl_line_cnt,
+              ssd->lm.free_trnsl_line_cnt);
 
     /* copy back valid data */
     for (ch = 0; ch < spp->nchs; ch++) {

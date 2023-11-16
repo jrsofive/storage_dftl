@@ -216,12 +216,6 @@ struct ssd {
 	uint64_t ByteWrittenMapGC;
 	uint64_t CmtHit;
 	uint64_t CmtMiss;
-
-	//appended variables for dftl
-    //cmt_ent* cmt;
-	//int cmt_len;		//number of entries in cmt <cmt_sz
-	//struct ppa* gtd;
-	int64_t expire_time;
 };
 
 void ssd_init(FemuCtrl *n);

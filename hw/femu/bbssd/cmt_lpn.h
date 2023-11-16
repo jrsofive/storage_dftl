@@ -253,7 +253,6 @@ struct ssd {
     cmt_ent* cmt;
 	int cmt_len;		//number of entries in cmt <cmt_sz
 	struct ppa* gtd;
-	int64_t expire_time;
 };
 
 void ssd_init(FemuCtrl *n);

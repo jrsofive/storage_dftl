@@ -898,8 +898,6 @@ static void update_stat (FemuCtrl *n)
 	n->CmtHit = ssd->CmtHit;
 	n->CmtMiss = ssd->CmtMiss;
 	
-	n->expire_time = ssd->expire_time;
-
 	return;
 }
 

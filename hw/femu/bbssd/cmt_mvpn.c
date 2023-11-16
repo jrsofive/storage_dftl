@@ -421,7 +421,7 @@ static void ssd_init_params(struct ssdparams *spp, FemuCtrl *n)
 
     spp->ent_per_trnsl_pg = 1024;
     spp->gtd_sz = spp->tt_pgs / spp->ent_per_trnsl_pg;
-    spp->num_buck = 1;
+    spp->num_buck = 4;
     spp->cmt_sz = 1 << spp->num_buck;
 
     check_params(spp);
@@ -887,8 +887,6 @@ static uint64_t gc_write_page(struct ssd *ssd, struct ppa *old_ppa)
 
 static uint64_t gc_write_trnsl_page(struct ssd *ssd, struct ppa *old_ppa)
 {
-	fprintf(stderr, "run gc_write_trnsl_page...\n");
-
     struct ppa new_ppa;
     struct nand_lun *new_lun;
     uint64_t mvpn = get_rmap_ent(ssd, old_ppa);
@@ -925,8 +923,6 @@ static uint64_t gc_write_trnsl_page(struct ssd *ssd, struct ppa *old_ppa)
 
     new_lun = get_lun(ssd, &new_ppa);
     new_lun->gc_endtime = new_lun->next_lun_avail_time;
-
-	fprintf(stderr, "end gc_write_trnsl_page...\n");
 
     return 0;
 }
@@ -1018,7 +1014,7 @@ static void clean_one_trnsl_block(struct ssd *ssd, struct ppa *ppa)
         }
     }
     ssd->ByteWrittenGC += cnt * (spp->secs_per_pg * spp->secsz);
-
+	fprintf(stderr, "map_gc - cnt: %d\n", cnt);
     ftl_assert(get_blk(ssd, ppa)->vpc == cnt);
 }
 
@@ -1088,7 +1084,6 @@ static int do_gc(struct ssd *ssd, bool force)
     /* update line status */
     mark_line_free(ssd, &ppa);
 
-	fprintf(stderr, "end do_gc...\n");
     return 0;
 }
 
@@ -1105,7 +1100,6 @@ static int do_map_gc(struct ssd *ssd, bool force)
 		return -1;
     }
 	
-	fprintf(stderr, "victim trnsl_line success\n");
     ppa.g.blk = victim_line->id;
     ftl_debug("GC-ing line:%d,ipc=%d,victim=%d,full=%d,free=%d\n", ppa.g.blk,
               victim_line->ipc, ssd->lm.victim_line_cnt, ssd->lm.full_line_cnt,
@@ -1172,7 +1166,8 @@ static uint64_t ssd_read(struct ssd *ssd, NvmeRequest *req)
         sublat = ssd_advance_status(ssd, &ppa, &srd);
         
 		//calculate cmt latency
-		cmt_oper(ssd, lpn, sublat + srd.stime);
+		if(lpn == start_lpn || !(lpn%1024))
+			cmt_oper(ssd, lpn, sublat + srd.stime);
 
 		maxlat = (sublat > maxlat) ? sublat : maxlat;
     }
@@ -1302,8 +1297,6 @@ static void update_stat (FemuCtrl *n)
 	
 	n->CmtHit = ssd->CmtHit;
 	n->CmtMiss = ssd->CmtMiss;
-	
-	n->expire_time = ssd->expire_time;
 
 	return;
 }
@@ -1361,7 +1354,6 @@ static void *ftl_thread(void *arg)
 			req->reqlat = lat;
 			req->expire_time += lat;
 			n->expire_time += lat;
-			fprintf(stderr, "reqlat %ld, expire_time %ld\n", req->reqlat, n->expire_time);
 
 			rc = femu_ring_enqueue(ssd->to_poller[i], (void *)&req, 1);
 	        if (rc != 1) {

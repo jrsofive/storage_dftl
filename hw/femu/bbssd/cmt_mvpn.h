@@ -7,7 +7,7 @@
 #define INVALID_LPN     (~(0ULL))
 #define UNMAPPED_PPA    (~(0ULL))
 
-#define DATA_PER_TT		((float)0.99)
+#define DATA_PER_TT		((float)0.97)
 
 enum {
     NAND_READ =  0,
@@ -253,7 +253,6 @@ struct ssd {
     cmt_ent* cmt;
 	int cmt_len;		//number of entries in cmt <cmt_sz
 	struct ppa* gtd;
-	int64_t expire_time;
 };
 
 void ssd_init(FemuCtrl *n);
